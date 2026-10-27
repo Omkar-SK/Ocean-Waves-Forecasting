@@ -1,0 +1,47 @@
+{
+  "saved_at": "2026-10-26T04:24:27.980944Z",
+  "epoch": 9,
+  "best_val_loss": 0.05942478482918344,
+  "train_loss": 0.08046600671297448,
+  "model_class": "WaveANN",
+  "model_config": {
+    "model_type": "ANN",
+    "input_dim": 13,
+    "seq_len": 24,
+    "flattened_dim": 312,
+    "hidden_dims": [
+      128,
+      64,
+      32
+    ],
+    "output_dim": 1,
+    "dropout": 0.2,
+    "use_batch_norm": true
+  },
+  "param_counts": {
+    "trainable_params": 50881,
+    "non_trainable_params": 0,
+    "total_params": 50881
+  },
+  "dataset_config": {
+    "horizon": 24,
+    "window_size": 24,
+    "features": [
+      "swh",
+      "mwp",
+      "mwd_sin",
+      "mwd_cos",
+      "u10",
+      "v10",
+      "wind_speed",
+      "wind_dir_sin",
+      "wind_dir_cos",
+      "hour_sin",
+      "hour_cos",
+      "month_sin",
+      "month_cos"
+    ],
+    "target": "swh"
+  },
+  "extra": {}
+}

@@ -1,0 +1,46 @@
+{
+  "saved_at": "2026-10-26T03:28:24.626834Z",
+  "epoch": 1,
+  "best_val_loss": 0.007000472589444867,
+  "train_loss": 0.04935283571069293,
+  "model_class": "WaveCNN1D",
+  "model_config": {
+    "model_type": "1D-CNN",
+    "input_dim": 13,
+    "seq_len": 24,
+    "num_filters": [
+      64,
+      128
+    ],
+    "kernel_size": 3,
+    "flattened_dim": 768,
+    "output_dim": 1,
+    "dropout": 0.2
+  },
+  "param_counts": {
+    "trainable_params": 76929,
+    "non_trainable_params": 0,
+    "total_params": 76929
+  },
+  "dataset_config": {
+    "horizon": 1,
+    "window_size": 24,
+    "features": [
+      "swh",
+      "mwp",
+      "mwd_sin",
+      "mwd_cos",
+      "u10",
+      "v10",
+      "wind_speed",
+      "wind_dir_sin",
+      "wind_dir_cos",
+      "hour_sin",
+      "hour_cos",
+      "month_sin",
+      "month_cos"
+    ],
+    "target": "swh"
+  },
+  "extra": {}
+}

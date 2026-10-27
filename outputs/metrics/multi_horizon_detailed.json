@@ -1,0 +1,333 @@
+{
+  "timestamp": "2026-10-26T04:35:02.952167Z",
+  "horizons_evaluated": [
+    1,
+    6,
+    24
+  ],
+  "results": [
+    {
+      "horizon_hours": 1,
+      "model": "Naive Persistence",
+      "model_type": "Baseline",
+      "status": "Evaluated",
+      "test_sample_count": 19455,
+      "target_start_time": "2024-07-29T09:00:00.000000000",
+      "target_end_time": "2026-10-17T23:00:00.000000000",
+      "rmse_meters": 0.021273933843775256,
+      "mae_meters": 0.013116082563647817,
+      "r2_score": 0.9991295715617523,
+      "scatter_index_pct": 1.6668661548470445,
+      "wape_pct": 1.0276780152684846,
+      "bias_meters": 0.00010317555125836265,
+      "rmse_skill_pct": 0.0,
+      "mae_skill_pct": 0.0,
+      "notes": "Predicts future wave height as latest observed wave height at anchor t."
+    },
+    {
+      "horizon_hours": 1,
+      "model": "WaveLSTM",
+      "model_type": "LSTM",
+      "status": "Evaluated",
+      "test_sample_count": 19455,
+      "target_start_time": "2024-07-29T09:00:00.000000000",
+      "target_end_time": "2026-10-17T23:00:00.000000000",
+      "rmse_meters": 0.027060738037238727,
+      "mae_meters": 0.018172138279858727,
+      "r2_score": 0.9985916300920471,
+      "scatter_index_pct": 2.1202767993308136,
+      "wape_pct": 1.4238326809857922,
+      "bias_meters": -0.0031149367950962003,
+      "rmse_skill_pct": -27.201382856404276,
+      "mae_skill_pct": -38.54852004533838,
+      "notes": "Trained checkpoint: best_lstm.pt (Val Loss: 0.00143)"
+    },
+    {
+      "horizon_hours": 1,
+      "model": "WaveANN",
+      "model_type": "ANN",
+      "status": "Evaluated",
+      "test_sample_count": 19455,
+      "target_start_time": "2024-07-29T09:00:00.000000000",
+      "target_end_time": "2026-10-17T23:00:00.000000000",
+      "rmse_meters": 0.046549297518398564,
+      "mae_meters": 0.03494017587869831,
+      "r2_score": 0.9958326140263815,
+      "scatter_index_pct": 3.6472543881688955,
+      "wape_pct": 2.7376505466405066,
+      "bias_meters": -0.0004909323546121127,
+      "rmse_skill_pct": -118.80907339579258,
+      "mae_skill_pct": -166.39185678456744,
+      "notes": "Trained checkpoint: best_ann.pt (Val Loss: 0.00431)"
+    },
+    {
+      "horizon_hours": 1,
+      "model": "WaveCNN1D",
+      "model_type": "CNN1D",
+      "status": "Evaluated",
+      "test_sample_count": 19455,
+      "target_start_time": "2024-07-29T09:00:00.000000000",
+      "target_end_time": "2026-10-17T23:00:00.000000000",
+      "rmse_meters": 0.05873361590151434,
+      "mae_meters": 0.04258913845398284,
+      "r2_score": 0.993365458111479,
+      "scatter_index_pct": 4.6019263393858045,
+      "wape_pct": 3.3369659779124747,
+      "bias_meters": 0.005376618374469378,
+      "rmse_skill_pct": -176.0825352415946,
+      "mae_skill_pct": -224.7092891289184,
+      "notes": "Trained checkpoint: best_cnn1d.pt (Val Loss: 0.00700)"
+    },
+    {
+      "horizon_hours": 6,
+      "model": "Naive Persistence",
+      "model_type": "Baseline",
+      "status": "Evaluated",
+      "test_sample_count": 19455,
+      "target_start_time": "2024-07-29T09:00:00.000000000",
+      "target_end_time": "2026-10-17T23:00:00.000000000",
+      "rmse_meters": 0.08934519847541399,
+      "mae_meters": 0.06236176357818306,
+      "r2_score": 0.9846474719765392,
+      "scatter_index_pct": 7.000420727562578,
+      "wape_pct": 4.886200823429833,
+      "bias_meters": 0.0006044091188150885,
+      "rmse_skill_pct": 0.0,
+      "mae_skill_pct": 0.0,
+      "notes": "Predicts future wave height as latest observed wave height at anchor t."
+    },
+    {
+      "horizon_hours": 6,
+      "model": "WaveLSTM",
+      "model_type": "LSTM",
+      "status": "Evaluated",
+      "test_sample_count": 19455,
+      "target_start_time": "2024-07-29T09:00:00.000000000",
+      "target_end_time": "2026-10-17T23:00:00.000000000",
+      "rmse_meters": 0.0769447447103495,
+      "mae_meters": 0.053312919475951986,
+      "r2_score": 0.9886133652737061,
+      "scatter_index_pct": 6.028814026257563,
+      "wape_pct": 4.1772011581465085,
+      "bias_meters": 0.0030595081243439035,
+      "rmse_skill_pct": 13.879261534660813,
+      "mae_skill_pct": 14.51024407109096,
+      "notes": "Trained checkpoint: best_lstm_h6.pt (Val Loss: 0.01184)"
+    },
+    {
+      "horizon_hours": 6,
+      "model": "WaveANN",
+      "model_type": "ANN",
+      "status": "Evaluated",
+      "test_sample_count": 19455,
+      "target_start_time": "2024-07-29T09:00:00.000000000",
+      "target_end_time": "2026-10-17T23:00:00.000000000",
+      "rmse_meters": 0.08151282313660012,
+      "mae_meters": 0.05742215898679725,
+      "r2_score": 0.9872212217864068,
+      "scatter_index_pct": 6.386734445551904,
+      "wape_pct": 4.499170395857209,
+      "bias_meters": -0.0016133051533161046,
+      "rmse_skill_pct": 8.766419989507535,
+      "mae_skill_pct": 7.920886626615387,
+      "notes": "Trained checkpoint: best_ann_h6.pt (Val Loss: 0.01334)"
+    },
+    {
+      "horizon_hours": 6,
+      "model": "WaveCNN1D",
+      "model_type": "CNN1D",
+      "status": "Evaluated",
+      "test_sample_count": 19455,
+      "target_start_time": "2024-07-29T09:00:00.000000000",
+      "target_end_time": "2026-10-17T23:00:00.000000000",
+      "rmse_meters": 0.09419799298257377,
+      "mae_meters": 0.06785845910788992,
+      "r2_score": 0.9829344314271067,
+      "scatter_index_pct": 7.380649366977056,
+      "wape_pct": 5.31688072538169,
+      "bias_meters": 0.004252128196969739,
+      "rmse_skill_pct": -5.43151125070831,
+      "mae_skill_pct": -8.81420796064505,
+      "notes": "Trained checkpoint: best_cnn1d_h6.pt (Val Loss: 0.01900)"
+    },
+    {
+      "horizon_hours": 24,
+      "model": "Naive Persistence",
+      "model_type": "Baseline",
+      "status": "Evaluated",
+      "test_sample_count": 19455,
+      "target_start_time": "2024-07-29T09:00:00.000000000",
+      "target_end_time": "2026-10-17T23:00:00.000000000",
+      "rmse_meters": 0.18659074787164429,
+      "mae_meters": 0.1285965548294487,
+      "r2_score": 0.9330396563722194,
+      "scatter_index_pct": 14.619853794734203,
+      "wape_pct": 10.075863093739006,
+      "bias_meters": 0.0025212073319983404,
+      "rmse_skill_pct": 0.0,
+      "mae_skill_pct": 0.0,
+      "notes": "Predicts future wave height as latest observed wave height at anchor t."
+    },
+    {
+      "horizon_hours": 24,
+      "model": "WaveLSTM",
+      "model_type": "LSTM",
+      "status": "Evaluated",
+      "test_sample_count": 19455,
+      "target_start_time": "2024-07-29T09:00:00.000000000",
+      "target_end_time": "2026-10-17T23:00:00.000000000",
+      "rmse_meters": 0.1978962228618474,
+      "mae_meters": 0.12287334365943992,
+      "r2_score": 0.9246796250656065,
+      "scatter_index_pct": 15.50566615854172,
+      "wape_pct": 9.627435122382803,
+      "bias_meters": -0.004422821405153905,
+      "rmse_skill_pct": -6.058968689047828,
+      "mae_skill_pct": 4.450516716874109,
+      "notes": "Trained checkpoint: best_lstm_h24.pt (Val Loss: 0.06402)"
+    },
+    {
+      "horizon_hours": 24,
+      "model": "WaveANN",
+      "model_type": "ANN",
+      "status": "Evaluated",
+      "test_sample_count": 19455,
+      "target_start_time": "2024-07-29T09:00:00.000000000",
+      "target_end_time": "2026-10-17T23:00:00.000000000",
+      "rmse_meters": 0.19199037357444484,
+      "mae_meters": 0.12254253304638858,
+      "r2_score": 0.9291081401475189,
+      "scatter_index_pct": 15.042928031917372,
+      "wape_pct": 9.601515279884055,
+      "bias_meters": 0.001175412842805206,
+      "rmse_skill_pct": -2.8938335712738406,
+      "mae_skill_pct": 4.707763587515446,
+      "notes": "Trained checkpoint: best_ann_h24.pt (Val Loss: 0.05942)"
+    },
+    {
+      "horizon_hours": 24,
+      "model": "WaveCNN1D",
+      "model_type": "CNN1D",
+      "status": "Evaluated",
+      "test_sample_count": 19455,
+      "target_start_time": "2024-07-29T09:00:00.000000000",
+      "target_end_time": "2026-10-17T23:00:00.000000000",
+      "rmse_meters": 0.19012997953952968,
+      "mae_meters": 0.13615441130691064,
+      "r2_score": 0.9304753732720191,
+      "scatter_index_pct": 14.89716148614113,
+      "wape_pct": 10.668040133396339,
+      "bias_meters": 0.027357264781053377,
+      "rmse_skill_pct": -1.896788403635119,
+      "mae_skill_pct": -5.877184258540624,
+      "notes": "Trained checkpoint: best_cnn1d_h24.pt (Val Loss: 0.07165)"
+    }
+  ],
+  "summaries": {
+    "1": {
+      "persistence": {
+        "rmse": 0.021273933843775256,
+        "mae": 0.013116082563647817,
+        "r2": 0.9991295715617523,
+        "si": 0.016668661548470444,
+        "wape": 1.0276780152684846
+      },
+      "models": {
+        "WaveLSTM": {
+          "rmse": 0.027060738037238727,
+          "mae": 0.018172138279858727,
+          "r2": 0.9985916300920471,
+          "si": 0.021202767993308138,
+          "wape": 1.4238326809857922,
+          "rmse_skill_pct": -27.201382856404276
+        },
+        "WaveANN": {
+          "rmse": 0.046549297518398564,
+          "mae": 0.03494017587869831,
+          "r2": 0.9958326140263815,
+          "si": 0.036472543881688954,
+          "wape": 2.7376505466405066,
+          "rmse_skill_pct": -118.80907339579258
+        },
+        "WaveCNN1D": {
+          "rmse": 0.05873361590151434,
+          "mae": 0.04258913845398284,
+          "r2": 0.993365458111479,
+          "si": 0.04601926339385804,
+          "wape": 3.3369659779124747,
+          "rmse_skill_pct": -176.0825352415946
+        }
+      }
+    },
+    "6": {
+      "persistence": {
+        "rmse": 0.08934519847541399,
+        "mae": 0.06236176357818306,
+        "r2": 0.9846474719765392,
+        "si": 0.07000420727562578,
+        "wape": 4.886200823429833
+      },
+      "models": {
+        "WaveLSTM": {
+          "rmse": 0.0769447447103495,
+          "mae": 0.053312919475951986,
+          "r2": 0.9886133652737061,
+          "si": 0.06028814026257563,
+          "wape": 4.1772011581465085,
+          "rmse_skill_pct": 13.879261534660813
+        },
+        "WaveANN": {
+          "rmse": 0.08151282313660012,
+          "mae": 0.05742215898679725,
+          "r2": 0.9872212217864068,
+          "si": 0.06386734445551905,
+          "wape": 4.499170395857209,
+          "rmse_skill_pct": 8.766419989507535
+        },
+        "WaveCNN1D": {
+          "rmse": 0.09419799298257377,
+          "mae": 0.06785845910788992,
+          "r2": 0.9829344314271067,
+          "si": 0.07380649366977056,
+          "wape": 5.31688072538169,
+          "rmse_skill_pct": -5.43151125070831
+        }
+      }
+    },
+    "24": {
+      "persistence": {
+        "rmse": 0.18659074787164429,
+        "mae": 0.1285965548294487,
+        "r2": 0.9330396563722194,
+        "si": 0.14619853794734203,
+        "wape": 10.075863093739006
+      },
+      "models": {
+        "WaveLSTM": {
+          "rmse": 0.1978962228618474,
+          "mae": 0.12287334365943992,
+          "r2": 0.9246796250656065,
+          "si": 0.1550566615854172,
+          "wape": 9.627435122382803,
+          "rmse_skill_pct": -6.058968689047828
+        },
+        "WaveANN": {
+          "rmse": 0.19199037357444484,
+          "mae": 0.12254253304638858,
+          "r2": 0.9291081401475189,
+          "si": 0.1504292803191737,
+          "wape": 9.601515279884055,
+          "rmse_skill_pct": -2.8938335712738406
+        },
+        "WaveCNN1D": {
+          "rmse": 0.19012997953952968,
+          "mae": 0.13615441130691064,
+          "r2": 0.9304753732720191,
+          "si": 0.1489716148614113,
+          "wape": 10.668040133396339,
+          "rmse_skill_pct": -1.896788403635119
+        }
+      }
+    }
+  }
+}

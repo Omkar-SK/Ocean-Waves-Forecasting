@@ -1,0 +1,43 @@
+{
+  "saved_at": "2026-10-26T04:26:01.471647Z",
+  "epoch": 4,
+  "best_val_loss": 0.0640245892717964,
+  "train_loss": 0.07222037678192385,
+  "model_class": "WaveLSTM",
+  "model_config": {
+    "model_type": "LSTM",
+    "input_dim": 13,
+    "seq_len": 24,
+    "hidden_dim": 64,
+    "num_layers": 2,
+    "output_dim": 1,
+    "dropout": 0.2,
+    "bidirectional": false
+  },
+  "param_counts": {
+    "trainable_params": 55617,
+    "non_trainable_params": 0,
+    "total_params": 55617
+  },
+  "dataset_config": {
+    "horizon": 24,
+    "window_size": 24,
+    "features": [
+      "swh",
+      "mwp",
+      "mwd_sin",
+      "mwd_cos",
+      "u10",
+      "v10",
+      "wind_speed",
+      "wind_dir_sin",
+      "wind_dir_cos",
+      "hour_sin",
+      "hour_cos",
+      "month_sin",
+      "month_cos"
+    ],
+    "target": "swh"
+  },
+  "extra": {}
+}

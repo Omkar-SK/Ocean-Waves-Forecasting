@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ocean-bg: #07111f;
+  --color-ocean-panel: #101d2d;
+  --color-ocean-surface: #16263a;
+  --color-ocean-border: #1e3a5f;
+  --color-ocean-border-light: #2a4e7a;
+  --color-ocean-cyan: #35c6e8;
+  --color-ocean-cyan-glow: rgba(53, 198, 232, 0.15);
+  --color-ocean-teal: #35d0b0;
+  --color-ocean-teal-glow: rgba(53, 208, 176, 0.15);
+  --color-ocean-text: #f1f5f9;
+  --color-ocean-muted: #94a3b8;
+  --color-ocean-amber: #f59e0b;
+  --color-ocean-red: #ef4444;
+
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Outfit', 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #07111f;
+  color: #f1f5f9;
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #07111f;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e3a5f;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #35c6e8;
+}
+
+/* Card glass / subtle ocean surface styling */
+.ocean-card {
+  background-color: #101d2d;
+  border: 1px solid #1e3a5f;
+  border-radius: 0.75rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ocean-card:hover {
+  border-color: #2a4e7a;
+}
+
+.ocean-glow-cyan {
+  box-shadow: 0 0 20px -5px rgba(53, 198, 232, 0.25);
+}
+
+.ocean-glow-teal {
+  box-shadow: 0 0 20px -5px rgba(53, 208, 176, 0.25);
+}
+
+/* Recharts customization */
+.recharts-default-tooltip {
+  background-color: #101d2d !important;
+  border: 1px solid #1e3a5f !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+  padding: 10px 14px !important;
+}
+
+.recharts-cartesian-grid line {
+  stroke: #16263a !important;
+}
+
+.recharts-cartesian-axis-line,
+.recharts-cartesian-axis-tick-line {
+  stroke: #1e3a5f !important;
+}
+
+.recharts-text {
+  fill: #94a3b8 !important;
+  font-size: 11px !important;
+}
