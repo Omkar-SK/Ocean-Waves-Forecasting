@@ -18,6 +18,7 @@ import {
   Radio,
   Wifi,
   WifiOff,
+  ShieldCheck,
 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
@@ -103,40 +104,40 @@ export function AboutPage() {
   ]
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-8">
       {/* Hero Header */}
-      <div className="rounded-2xl bg-gradient-to-br from-[#101D2D] via-[#101D2D] to-[#16263A] border border-[#1E3A5F] p-6 md:p-8">
+      <div className="bg-white border border-[#DCE5EF] rounded-2xl p-6 md:p-8 shadow-xs relative overflow-hidden">
         <div className="flex flex-wrap items-center gap-2 mb-3">
           <Badge variant="cyan">Academic Capstone Project</Badge>
           <Badge variant="teal">Semester 5 Deep Learning</Badge>
           <Badge variant="outline">VIT Pune</Badge>
         </div>
-        <h1 className="font-['Outfit',sans-serif] text-2xl md:text-3xl font-extrabold text-[#F1F5F9] tracking-tight">
+        <h1 className="font-['Outfit',sans-serif] text-2xl md:text-3xl font-extrabold text-[#15304B] tracking-tight">
           Ocean Wave Forecasting Using Deep Learning: ANN vs LSTM vs CNN
         </h1>
-        <p className="text-sm md:text-base text-[#94A3B8] max-w-4xl mt-3 leading-relaxed">
+        <p className="text-sm md:text-base text-[#64758A] max-w-4xl mt-3 leading-relaxed">
           OceanCast AI is a full-stack intelligence and benchmarking interface investigating whether deep neural
           architectures (Artificial Neural Networks, Long Short-Term Memory networks, and 1D Convolutional Neural Networks)
           can outperform simple persistence baselines when predicting offshore Arabian Sea significant wave height ($H_s$)
           at 1-hour, 6-hour, and 24-hour horizons.
         </p>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-[#1E3A5F]/80">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-[#DCE5EF]">
           <div>
-            <span className="text-[11px] text-[#94A3B8] uppercase tracking-wider block">Target Coordinates</span>
-            <span className="text-sm font-semibold font-mono text-[#F1F5F9]">18.50° N, 72.50° E</span>
+            <span className="text-[10px] font-mono text-[#64758A] uppercase tracking-wider block">Target Coordinates</span>
+            <span className="text-sm font-semibold font-mono text-[#15304B]">18.50° N, 72.50° E</span>
           </div>
           <div>
-            <span className="text-[11px] text-[#94A3B8] uppercase tracking-wider block">Primary Data Source</span>
-            <span className="text-sm font-semibold text-[#35C6E8]">ECMWF ERA5 Reanalysis</span>
+            <span className="text-[10px] font-mono text-[#64758A] uppercase tracking-wider block">Primary Data Source</span>
+            <span className="text-sm font-semibold text-[#245B8F]">ECMWF ERA5 Reanalysis</span>
           </div>
           <div>
-            <span className="text-[11px] text-[#94A3B8] uppercase tracking-wider block">Chronological Test Set</span>
-            <span className="text-sm font-semibold font-mono text-[#35D0B0]">19,455 Hourly Samples</span>
+            <span className="text-[10px] font-mono text-[#64758A] uppercase tracking-wider block">Chronological Test Set</span>
+            <span className="text-sm font-semibold font-mono text-[#20AFA7]">19,455 Hourly Samples</span>
           </div>
           <div>
-            <span className="text-[11px] text-[#94A3B8] uppercase tracking-wider block">Input Window</span>
-            <span className="text-sm font-semibold font-mono text-[#F1F5F9]">24 Hours (t-23 to t)</span>
+            <span className="text-[10px] font-mono text-[#64758A] uppercase tracking-wider block">Input Window</span>
+            <span className="text-sm font-semibold font-mono text-[#15304B]">24 Hours (t-23 to t)</span>
           </div>
         </div>
       </div>
@@ -144,10 +145,10 @@ export function AboutPage() {
       {/* End-to-End Pipeline Diagram */}
       <div className="space-y-4">
         <div>
-          <h2 className="text-lg font-bold text-[#F1F5F9] font-['Outfit',sans-serif]">
+          <h2 className="text-lg font-bold text-[#15304B] font-['Outfit',sans-serif]">
             End-to-End Deep Learning Architecture Pipeline
           </h2>
-          <p className="text-xs text-[#94A3B8]">
+          <p className="text-xs text-[#64758A]">
             Complete data flow from reanalysis ingestion through preprocessing, sequence formation, and multi-horizon inference
           </p>
         </div>
@@ -156,16 +157,16 @@ export function AboutPage() {
           {pipelineSteps.map((step) => (
             <div
               key={step.num}
-              className="p-5 rounded-xl bg-[#101D2D] border border-[#1E3A5F] relative hover:border-[#35C6E8]/40 transition-colors"
+              className="p-5 rounded-xl bg-white border border-[#DCE5EF] relative hover:border-[#20AFA7]/60 hover:shadow-md transition-all shadow-xs"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xl font-bold font-mono text-[#35C6E8]/60">{step.num}</span>
-                <Badge variant="surface" className="text-[10px]">
+                <span className="text-xl font-bold font-mono text-[#20AFA7]">{step.num}</span>
+                <Badge variant="surface" className="text-[10px] font-mono">
                   {step.badge}
                 </Badge>
               </div>
-              <h3 className="text-sm font-semibold text-[#F1F5F9] mb-1.5">{step.title}</h3>
-              <p className="text-xs text-[#94A3B8] leading-relaxed">{step.desc}</p>
+              <h3 className="text-sm font-semibold text-[#15304B] mb-1.5">{step.title}</h3>
+              <p className="text-xs text-[#64758A] leading-relaxed">{step.desc}</p>
             </div>
           ))}
         </div>
@@ -174,53 +175,44 @@ export function AboutPage() {
       {/* Grid: Feature Engineering & Preprocessing Integrity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Input Feature Specification */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Database className="h-4 w-4 text-[#35C6E8]" />
-                <span>13-Feature Ingestion Specification</span>
-              </CardTitle>
-              <Badge variant="cyan" className="font-mono text-[10px]">
-                dim = 13
-              </Badge>
-            </div>
-            <CardDescription>
-              Exact canonical feature ordering expected by all 9 PyTorch model checkpoints
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="divide-y divide-[#1E3A5F]/40">
-              {featureList.map((f, i) => (
-                <div key={i} className="py-2.5 flex items-start justify-between gap-4">
-                  <div>
-                    <span className="text-xs font-mono font-semibold text-[#35C6E8]">{f.name}</span>
-                    <p className="text-[11px] text-[#94A3B8] mt-0.5">{f.desc}</p>
-                  </div>
-                  <Badge variant="outline" className="text-[9px] shrink-0">
-                    {f.category}
-                  </Badge>
+        <div className="bg-white border border-[#DCE5EF] rounded-2xl p-6 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-[#DCE5EF] pb-3">
+            <h3 className="font-['Outfit',sans-serif] text-base font-bold text-[#15304B] flex items-center gap-2">
+              <Database className="h-4 w-4 text-[#245B8F]" />
+              <span>13-Feature Ingestion Specification</span>
+            </h3>
+            <Badge variant="cyan" className="font-mono text-[10px]">
+              dim = 13
+            </Badge>
+          </div>
+
+          <div className="divide-y divide-[#DCE5EF]">
+            {featureList.map((f, i) => (
+              <div key={i} className="py-2.5 flex items-start justify-between gap-4">
+                <div>
+                  <span className="text-xs font-mono font-semibold text-[#245B8F]">{f.name}</span>
+                  <p className="text-[11px] text-[#64758A] mt-0.5">{f.desc}</p>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <Badge variant="outline" className="text-[9px] font-mono shrink-0">
+                  {f.category}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* Methodology & Data Leakage Prevention */}
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Scale className="h-4 w-4 text-[#35D0B0]" />
-                <span>Strict Chronological Split & Leak-Free Scaling</span>
-              </CardTitle>
-              <CardDescription>
-                Guarantees zero future lookahead contamination across temporal partitions
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 text-xs text-[#94A3B8] leading-relaxed">
-              <div className="p-3 rounded-lg bg-[#16263A] border border-[#1E3A5F] space-y-1">
-                <span className="font-semibold text-[#F1F5F9] block">Chronological 70 / 15 / 15 Partitioning</span>
+          <div className="bg-white border border-[#DCE5EF] rounded-2xl p-6 shadow-xs space-y-4">
+            <div className="flex items-center gap-2 border-b border-[#DCE5EF] pb-3">
+              <Scale className="h-4 w-4 text-[#20AFA7]" />
+              <h3 className="font-['Outfit',sans-serif] text-base font-bold text-[#15304B]">
+                Strict Chronological Split & Leak-Free Scaling
+              </h3>
+            </div>
+            <div className="space-y-3 text-xs text-[#64758A] leading-relaxed">
+              <div className="p-3 rounded-lg bg-[#F0F6FC] border border-[#DCE5EF] space-y-1">
+                <span className="font-semibold text-[#15304B] block">Chronological 70 / 15 / 15 Partitioning</span>
                 <p>
                   Random K-Fold cross validation is mathematically invalid for auto-correlated geophysical time series.
                   The dataset is split strictly by date: first 70% for training, subsequent 15% for validation and hyperparameter
@@ -228,143 +220,137 @@ export function AboutPage() {
                 </p>
               </div>
 
-              <div className="p-3 rounded-lg bg-[#16263A] border border-[#1E3A5F] space-y-1">
-                <span className="font-semibold text-[#F1F5F9] block">Fit-Only-On-Train MinMaxScaler</span>
+              <div className="p-3 rounded-lg bg-[#F0F6FC] border border-[#DCE5EF] space-y-1">
+                <span className="font-semibold text-[#15304B] block">Fit-Only-On-Train MinMaxScaler</span>
                 <p>
                   The feature scaler (`scaler.pkl`) was fitted solely on training split rows. Minimums and maximums from
                   validation and test horizons were never exposed to the preprocessing pipeline, preserving realistic out-of-distribution
                   generalization.
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Model Architecture Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Cpu className="h-4 w-4 text-[#F59E0B]" />
-                <span>Deep Learning Architectures</span>
-              </CardTitle>
-              <CardDescription>Implemented in PyTorch 2.2 with Adam optimizer & MSE loss</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 text-xs text-[#94A3B8]">
-              <div className="p-2.5 rounded-lg bg-[#16263A] border border-[#1E3A5F]">
-                <span className="font-semibold text-[#F1F5F9]">WaveLSTM (Recurrent):</span> Two-layer stacked LSTM with hidden
+          <div className="bg-white border border-[#DCE5EF] rounded-2xl p-6 shadow-xs space-y-3">
+            <div className="flex items-center gap-2 border-b border-[#DCE5EF] pb-3">
+              <Cpu className="h-4 w-4 text-[#245B8F]" />
+              <h3 className="font-['Outfit',sans-serif] text-base font-bold text-[#15304B]">
+                Deep Learning Architectures
+              </h3>
+            </div>
+            <div className="space-y-2.5 text-xs text-[#64758A]">
+              <div className="p-2.5 rounded-lg bg-[#F0F6FC] border border-[#DCE5EF]">
+                <span className="font-semibold text-[#15304B]">WaveLSTM (Recurrent):</span> Two-layer stacked LSTM with hidden
                 size 64 and dropout (0.2), capturing sequential temporal memory across the 24-hour wind-sea growth cycle.
               </div>
-              <div className="p-2.5 rounded-lg bg-[#16263A] border border-[#1E3A5F]">
-                <span className="font-semibold text-[#F1F5F9]">WaveANN (Multi-Layer Perceptron):</span> Flattened (24 × 13 = 312)
+              <div className="p-2.5 rounded-lg bg-[#F0F6FC] border border-[#DCE5EF]">
+                <span className="font-semibold text-[#15304B]">WaveANN (Multi-Layer Perceptron):</span> Flattened (24 × 13 = 312)
                 input fed through 3 fully-connected layers (128 → 64 → 1) with ReLU activations and Batch Normalization.
               </div>
-              <div className="p-2.5 rounded-lg bg-[#16263A] border border-[#1E3A5F]">
-                <span className="font-semibold text-[#F1F5F9]">WaveCNN1D (Temporal Convolution):</span> 1D Conv layers (filters 32, 64)
+              <div className="p-2.5 rounded-lg bg-[#F0F6FC] border border-[#DCE5EF]">
+                <span className="font-semibold text-[#15304B]">WaveCNN1D (Temporal Convolution):</span> 1D Conv layers (filters 32, 64)
                 with kernel size 3 and MaxPool, extracting local wave-train patterns across consecutive hours.
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* System Status & Data Feed Telemetry */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Server className="h-4 w-4 text-[#35D0B0]" />
-                <span>System Status & Service Health</span>
-              </CardTitle>
-              <CardDescription>
-                Real-time operational status of backend services, PyTorch checkpoints, and data ingestion feeds
-              </CardDescription>
-            </div>
-            <Badge variant={health?.backend_online ? 'teal' : 'destructive'}>
-              {health?.backend_online ? 'Backend Connected' : 'Disconnected'}
-            </Badge>
+      <div className="bg-white border border-[#DCE5EF] rounded-2xl p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-[#DCE5EF] pb-3">
+          <div>
+            <h3 className="font-['Outfit',sans-serif] text-base font-bold text-[#15304B] flex items-center gap-2">
+              <Server className="h-4 w-4 text-[#245B8F]" />
+              <span>System Status & Service Health</span>
+            </h3>
+            <p className="text-xs text-[#64758A] mt-0.5">
+              Real-time operational status of backend services, PyTorch checkpoints, and data ingestion feeds
+            </p>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-3.5 rounded-xl bg-[#16263A] border border-[#1E3A5F]">
-              <div className="flex items-center justify-between text-xs text-[#94A3B8] mb-1">
-                <span>FastAPI Service</span>
-                <Server className="h-3.5 w-3.5 text-[#35C6E8]" />
-              </div>
-              <div className="font-mono text-sm font-bold text-[#F1F5F9]">
-                {health?.backend_online ? 'Healthy (Port 8000)' : 'Unhealthy'}
-              </div>
-              <p className="text-[10px] text-[#35D0B0] mt-1">Uvicorn ASGI Runtime</p>
-            </div>
+          <Badge variant={health?.backend_online ? 'teal' : 'destructive'} className="font-mono">
+            {health?.backend_online ? 'Backend Connected' : 'Disconnected'}
+          </Badge>
+        </div>
 
-            <div className="p-3.5 rounded-xl bg-[#16263A] border border-[#1E3A5F]">
-              <div className="flex items-center justify-between text-xs text-[#94A3B8] mb-1">
-                <span>Open-Meteo NWP Feed</span>
-                {forecastStatus?.live_api_online ? (
-                  <Wifi className="h-3.5 w-3.5 text-[#35D0B0]" />
-                ) : (
-                  <WifiOff className="h-3.5 w-3.5 text-[#F59E0B]" />
-                )}
-              </div>
-              <div className="font-mono text-sm font-bold text-[#F1F5F9]">
-                {forecastStatus?.live_api_online ? 'Live Connected' : 'Demo Fallback'}
-              </div>
-              <p className="text-[10px] text-[#94A3B8] mt-1">ECMWF Atmospheric Ingestion</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-4 rounded-xl bg-[#F0F6FC] border border-[#DCE5EF]">
+            <div className="flex items-center justify-between text-xs text-[#64758A] mb-1">
+              <span>FastAPI Service</span>
+              <Server className="h-3.5 w-3.5 text-[#245B8F]" />
             </div>
-
-            <div className="p-3.5 rounded-xl bg-[#16263A] border border-[#1E3A5F]">
-              <div className="flex items-center justify-between text-xs text-[#94A3B8] mb-1">
-                <span>PyTorch Checkpoints</span>
-                <Cpu className="h-3.5 w-3.5 text-[#F59E0B]" />
-              </div>
-              <div className="font-mono text-sm font-bold text-[#F1F5F9]">
-                {health?.checkpoints_available ?? 9} / 9 Loaded
-              </div>
-              <p className="text-[10px] text-[#35D0B0] mt-1">ANN • LSTM • 1D-CNN</p>
+            <div className="font-mono text-sm font-bold text-[#15304B]">
+              {health?.backend_online ? 'Healthy (Port 8000)' : 'Unhealthy'}
             </div>
-
-            <div className="p-3.5 rounded-xl bg-[#16263A] border border-[#1E3A5F]">
-              <div className="flex items-center justify-between text-xs text-[#94A3B8] mb-1">
-                <span>Live Buoy Telemetry</span>
-                <Radio className="h-3.5 w-3.5 text-[#94A3B8]" />
-              </div>
-              <div className="font-mono text-sm font-bold text-[#94A3B8]">
-                Not Configured
-              </div>
-              <p className="text-[10px] text-[#94A3B8] mt-1">INCOIS Feed Unconfigured</p>
-            </div>
+            <p className="text-[10px] text-[#20AFA7] mt-1 font-mono">Uvicorn ASGI Runtime</p>
           </div>
 
-          {/* Component Health Items */}
-          {health?.components && health.components.length > 0 && (
-            <div className="pt-2 border-t border-[#1E3A5F]/60">
-              <span className="text-xs font-semibold text-[#94A3B8] block mb-2">Subsystem Component Status</span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {health.components.map((comp, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-[#07111F] border border-[#1E3A5F] text-xs">
-                    <span className="text-[#F1F5F9] font-medium">{comp.name}</span>
-                    <Badge variant={comp.status === 'healthy' ? 'teal' : comp.status === 'degraded' ? 'warning' : 'destructive'} className="text-[10px]">
-                      {comp.status}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
+          <div className="p-4 rounded-xl bg-[#F0F6FC] border border-[#DCE5EF]">
+            <div className="flex items-center justify-between text-xs text-[#64758A] mb-1">
+              <span>Open-Meteo NWP Feed</span>
+              {forecastStatus?.live_api_online ? (
+                <Wifi className="h-3.5 w-3.5 text-[#20AFA7]" />
+              ) : (
+                <WifiOff className="h-3.5 w-3.5 text-amber-600" />
+              )}
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <div className="font-mono text-sm font-bold text-[#15304B]">
+              {forecastStatus?.live_api_online ? 'Live Connected' : 'Demo Fallback'}
+            </div>
+            <p className="text-[10px] text-[#64758A] mt-1 font-mono">ECMWF WAM Telemetry</p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-[#F0F6FC] border border-[#DCE5EF]">
+            <div className="flex items-center justify-between text-xs text-[#64758A] mb-1">
+              <span>PyTorch Checkpoints</span>
+              <Cpu className="h-3.5 w-3.5 text-[#245B8F]" />
+            </div>
+            <div className="font-mono text-sm font-bold text-[#15304B]">
+              {health?.checkpoints_available ?? 9} / 9 Loaded
+            </div>
+            <p className="text-[10px] text-[#20AFA7] mt-1 font-mono">ANN • LSTM • 1D-CNN</p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-[#F0F6FC] border border-[#DCE5EF]">
+            <div className="flex items-center justify-between text-xs text-[#64758A] mb-1">
+              <span>Live Buoy Telemetry</span>
+              <Radio className="h-3.5 w-3.5 text-[#64758A]" />
+            </div>
+            <div className="font-mono text-sm font-bold text-[#8291A2]">
+              Not Configured
+            </div>
+            <p className="text-[10px] text-[#8291A2] mt-1 font-mono">INCOIS Feed Unconfigured</p>
+          </div>
+        </div>
+
+        {/* Component Health Items */}
+        {health?.components && health.components.length > 0 && (
+          <div className="pt-3 border-t border-[#DCE5EF]">
+            <span className="text-xs font-semibold text-[#64758A] block mb-2 font-mono">Subsystem Component Status</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {health.components.map((comp, idx) => (
+                <div key={idx} className="flex items-center justify-between p-2.5 rounded-lg bg-[#F0F6FC] border border-[#DCE5EF] text-xs font-mono">
+                  <span className="text-[#15304B] font-medium">{comp.name}</span>
+                  <Badge variant={comp.status === 'healthy' ? 'teal' : comp.status === 'degraded' ? 'warning' : 'destructive'} className="text-[10px]">
+                    {comp.status}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Critical Scientific Disclaimer */}
-      <Card className="border-l-4 border-l-[#F59E0B]">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <ShieldAlert className="h-5 w-5 text-[#F59E0B]" />
-            <CardTitle className="text-base text-[#F59E0B]">
-              Scientific Limitations & Operational Distribution Shift Notice
-            </CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-2 text-xs text-[#94A3B8] leading-relaxed">
+      <div className="bg-amber-50/60 border border-amber-200 border-l-4 border-l-amber-500 rounded-2xl p-6 shadow-xs space-y-3">
+        <div className="flex items-center gap-2">
+          <ShieldAlert className="h-5 w-5 text-amber-600" />
+          <h3 className="text-base font-bold text-amber-900 font-['Outfit',sans-serif]">
+            Scientific Limitations & Operational Distribution Shift Notice
+          </h3>
+        </div>
+        <div className="space-y-2 text-xs text-amber-800 leading-relaxed">
           <p>
             <strong>Reanalysis vs Live Observations:</strong> ERA5 is an atmospheric reanalysis produced by ECMWF combining
             historical observations with numerical weather prediction models. While highly accurate for climatological studies,
@@ -376,8 +362,8 @@ export function AboutPage() {
             physics revisions, spatial resolution differences, and atmospheric data assimilation timing. OceanCast AI openly highlights
             these distinctions to ensure research honesty.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

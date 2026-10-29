@@ -16,7 +16,10 @@ torchvision>=0.17.0
 matplotlib>=3.8.0
 seaborn>=0.13.0
 
-# Web Application & Interactive Dashboard
+# Web Application & REST API
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+pydantic>=2.6.0
 streamlit>=1.32.0
 folium>=0.17.0
 streamlit-folium>=0.20.0

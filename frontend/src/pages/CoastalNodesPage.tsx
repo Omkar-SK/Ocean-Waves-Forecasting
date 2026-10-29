@@ -15,6 +15,7 @@ import {
 import { api } from '../services/api'
 import type { CoastalNode, NodeMapSummaryItem } from '../types'
 import { Button } from '../components/ui/Button'
+import { Badge } from '../components/ui/Badge'
 import { StatusIndicator } from '../components/ui/StatusIndicator'
 
 export function CoastalNodesPage() {
@@ -61,46 +62,46 @@ export function CoastalNodesPage() {
   })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-8">
       {/* Header Banner */}
-      <div className="rounded-xl bg-gradient-to-r from-[#0F172A] via-[#162B4D] to-[#0A192F] p-5 border border-[#1E3A5F] shadow-lg">
+      <div className="bg-white p-6 rounded-2xl border border-[#DCE5EF] shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#35C6E8]/20 text-[#35C6E8] border border-[#35C6E8]/40">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EAF2F9] text-[#245B8F] border border-[#DCE5EF]">
                 <Radio className="h-4 w-4" />
               </span>
-              <h1 className="text-xl font-bold tracking-tight text-[#F1F5F9] font-['Outfit',sans-serif]">
+              <h1 className="text-xl font-bold tracking-tight text-[#15304B] font-['Outfit',sans-serif]">
                 Coastal Node Registry & Telemetry Feeds
               </h1>
             </div>
-            <p className="mt-1 text-xs text-[#94A3B8] max-w-3xl leading-relaxed">
+            <p className="mt-1 text-xs text-[#64758A] max-w-3xl leading-relaxed">
               Multi-location ingestion pipeline monitoring 8 coastal candidate nodes across the Arabian Sea coastline.
               Tracks feed status, data freshness, localized wave heights, and geographic model validation.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="flex bg-[#07111F] p-1 rounded-lg border border-[#1E3A5F]">
+          <div className="flex items-center gap-2.5">
+            <div className="flex bg-[#F0F6FC] p-1 rounded-lg border border-[#DCE5EF]">
               <button
                 onClick={() => setSource('demo')}
                 className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${
                   source === 'demo'
-                    ? 'bg-[#1E3A5F] text-[#35C6E8] border border-[#35C6E8]/40'
-                    : 'text-[#94A3B8] hover:text-[#F1F5F9]'
+                    ? 'bg-white text-[#245B8F] border border-[#DCE5EF] shadow-xs'
+                    : 'text-[#64758A] hover:text-[#192B3C]'
                 }`}
               >
-                📂 ERA5 Demo
+                ERA5 Demo
               </button>
               <button
                 onClick={() => setSource('live')}
                 className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${
                   source === 'live'
-                    ? 'bg-[#1E3A5F] text-[#35C6E8] border border-[#35C6E8]/40'
-                    : 'text-[#94A3B8] hover:text-[#F1F5F9]'
+                    ? 'bg-white text-[#245B8F] border border-[#DCE5EF] shadow-xs'
+                    : 'text-[#64758A] hover:text-[#192B3C]'
                 }`}
               >
-                🌐 Open-Meteo REST
+                Open-Meteo REST
               </button>
             </div>
 
@@ -120,16 +121,16 @@ export function CoastalNodesPage() {
 
       {/* Grid of Coastal Stations */}
       {loading ? (
-        <div className="rounded-xl bg-[#101D2D] p-12 text-center border border-[#1E3A5F] text-xs text-[#35C6E8]">
-          <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2" />
-          <span>Polling multi-location telemetry pipeline...</span>
+        <div className="bg-white p-12 text-center rounded-2xl border border-[#DCE5EF] text-xs text-[#20AFA7] shadow-xs">
+          <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2 text-[#20AFA7]" />
+          <span className="font-mono text-[#64758A]">Polling multi-location telemetry pipeline...</span>
         </div>
       ) : error ? (
-        <div className="rounded-xl bg-red-950/80 p-4 border border-red-500/50 text-xs text-red-200">
+        <div className="rounded-xl bg-red-50 p-4 border border-red-200 text-xs text-red-700 font-mono">
           {error}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {mergedStations.map((station) => {
             const tel = station.telemetry
             const isRef = station.is_reference
@@ -140,113 +141,86 @@ export function CoastalNodesPage() {
             return (
               <div
                 key={station.location_id}
-                className="rounded-xl bg-[#101D2D] border border-[#1E3A5F] overflow-hidden flex flex-col justify-between hover:border-[#35C6E8]/60 transition-all shadow-md group"
+                className="bg-white border border-[#DCE5EF] rounded-2xl p-5 overflow-hidden flex flex-col justify-between hover:border-[#20AFA7]/60 hover:shadow-md transition-all shadow-xs group"
               >
-                {/* Card Top */}
-                <div className="p-4 space-y-3">
+                {/* Station Top */}
+                <div className="space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h3 className="text-sm font-bold text-[#F1F5F9] group-hover:text-[#35C6E8] transition-colors">
+                      <h3 className="text-sm font-bold text-[#15304B] group-hover:text-[#245B8F] transition-colors font-['Outfit',sans-serif]">
                         {station.name}
                       </h3>
-                      <div className="text-[11px] text-[#35C6E8] font-mono mt-0.5">
+                      <div className="text-[11px] text-[#245B8F] font-mono mt-0.5">
                         {station.coordinate_label}
                       </div>
                     </div>
                     <span
-                      className="px-2 py-0.5 rounded text-[10px] font-bold border"
+                      className="px-2 py-0.5 rounded text-[10px] font-mono font-bold border"
                       style={{
                         color: markerColor,
-                        borderColor: `${markerColor}66`,
+                        borderColor: `${markerColor}44`,
                         backgroundColor: `${markerColor}15`,
                       }}
                     >
-                      {tel ? tel.current_risk_level : 'UNKNOWN'}
+                      {tel?.current_risk_level || 'UNKNOWN'}
                     </span>
                   </div>
 
-                  {/* Validation Badge */}
-                  <div>
-                    {isRef ? (
-                      <div className="inline-flex items-center gap-1 bg-emerald-950/70 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded text-[10px] font-semibold">
-                        <ShieldCheck className="h-3 w-3 text-emerald-400" />
-                        <span>REFERENCE VALIDATED</span>
-                      </div>
-                    ) : (
-                      <div className="inline-flex items-center gap-1 bg-amber-950/70 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded text-[10px] font-semibold">
-                        <AlertCircle className="h-3 w-3 text-amber-400" />
-                        <span>EXPERIMENTAL REGIONAL NODE</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <p className="text-xs text-[#94A3B8] leading-relaxed line-clamp-2">
+                  <p className="text-[11px] text-[#64758A] leading-relaxed line-clamp-2">
                     {station.description}
                   </p>
 
-                  {/* Live Telemetry Summary */}
-                  <div className="grid grid-cols-2 gap-2 bg-[#07111F] p-2.5 rounded-lg border border-[#1E3A5F] text-xs">
+                  {/* Telemetry Metrics */}
+                  <div className="grid grid-cols-2 gap-2 text-xs font-mono p-3 rounded-xl bg-[#F0F6FC] border border-[#DCE5EF]">
                     <div>
-                      <div className="text-[10px] text-[#94A3B8] uppercase">Observed (Hs)</div>
-                      <div className="text-base font-bold font-mono text-[#F1F5F9]">
-                        {tel?.latest_obs_swh_m !== null && tel?.latest_obs_swh_m !== undefined
-                          ? `${tel.latest_obs_swh_m.toFixed(2)} m`
-                          : 'N/A'}
-                      </div>
+                      <span className="text-[10px] text-[#64758A] block">OBSERVED $H_s$</span>
+                      <span className="text-base font-bold text-[#15304B]">
+                        {tel?.latest_obs_swh_m != null ? `${Number(tel.latest_obs_swh_m).toFixed(2)} m` : 'N/A'}
+                      </span>
                     </div>
                     <div>
-                      <div className="text-[10px] text-[#94A3B8] uppercase">+6h Forecast</div>
-                      <div
-                        className="text-base font-bold font-mono"
-                        style={{ color: markerColor }}
-                      >
-                        {tel?.forecast_swh_m !== null && tel?.forecast_swh_m !== undefined
-                          ? `${tel.forecast_swh_m.toFixed(2)} m`
-                          : 'N/A'}
-                      </div>
+                      <span className="text-[10px] text-[#64758A] block">+6h FORECAST</span>
+                      <span className="text-base font-bold text-[#20AFA7]">
+                        {tel?.forecast_swh_m != null ? `${Number(tel.forecast_swh_m).toFixed(2)} m` : 'N/A'}
+                      </span>
                     </div>
                   </div>
 
-                  {/* Feed Status */}
-                  <div className="text-[11px] text-[#94A3B8] flex items-center justify-between pt-1">
-                    <span className="flex items-center gap-1">
-                      <span
-                        className={`h-2 w-2 rounded-full ${
-                          isDegraded ? 'bg-red-500' : isStale ? 'bg-amber-400' : 'bg-emerald-400'
-                        }`}
-                      />
-                      <span className="font-mono text-[#CBD5E1]">
-                        {tel?.data_status.toUpperCase() || 'UNAVAILABLE'}
-                      </span>
+                  {/* Ingestion & Feed Status */}
+                  <div className="flex items-center justify-between text-[11px] font-mono pt-1">
+                    <span className="text-[#64758A]">Feed Freshness:</span>
+                    <span className={`font-semibold ${isDegraded ? 'text-red-600' : isStale ? 'text-amber-600' : 'text-emerald-600'}`}>
+                      {tel?.data_status || 'FRESH'}
                     </span>
+                  </div>
 
-                    {tel?.active_alert_count ? (
-                      <span className="bg-red-500/20 text-red-400 border border-red-500/40 text-[10px] font-bold px-1.5 py-0.5 rounded">
-                        {tel.active_alert_count} ALERTS
+                  {/* Validation status badge */}
+                  <div>
+                    {isRef ? (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-[#E1F5F2] text-[#0D9488] text-[10px] font-mono border border-[#20AFA7]/30 w-full justify-center font-medium">
+                        <ShieldCheck className="h-3.5 w-3.5" /> Reference Calibration Station
                       </span>
                     ) : (
-                      <span className="text-[10px] text-emerald-400">Nominal</span>
+                      <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-[#FEF3C7] text-[#D97706] text-[10px] font-mono border border-[#F59E0B]/30 w-full justify-center font-medium">
+                        <AlertCircle className="h-3.5 w-3.5" /> Regional Transfer Candidate
+                      </span>
                     )}
                   </div>
                 </div>
 
-                {/* Card Footer Actions */}
-                <div className="p-3 bg-[#07111F]/60 border-t border-[#1E3A5F] flex items-center justify-between text-xs">
+                {/* Footer Link to Map */}
+                <div className="pt-4 border-t border-[#DCE5EF] mt-4 flex items-center justify-between text-xs">
                   <Link
                     to="/map"
-                    className="text-[#35C6E8] hover:underline flex items-center gap-1"
+                    className="text-[#20AFA7] hover:text-[#0D9488] hover:underline flex items-center gap-1 text-[11px] font-mono font-medium"
                   >
-                    <Compass className="h-3.5 w-3.5" />
-                    <span>View on Map</span>
-                  </Link>
-
-                  <Link
-                    to={`/live?location=${station.location_id}`}
-                    className="text-[#94A3B8] hover:text-[#F1F5F9] flex items-center gap-1"
-                  >
-                    <span>Forecast</span>
+                    <span>View Station on Map</span>
                     <ExternalLink className="h-3 w-3" />
                   </Link>
+
+                  <span className="text-[10px] font-mono text-[#64758A]">
+                    {station.region}
+                  </span>
                 </div>
               </div>
             )

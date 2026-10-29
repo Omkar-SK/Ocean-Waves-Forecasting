@@ -2,24 +2,25 @@ import React from 'react'
 import { cn } from '../../lib/utils'
 
 interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: 'default' | 'cyan' | 'teal' | 'warning' | 'destructive' | 'outline' | 'surface'
+  variant?: 'default' | 'cyan' | 'teal' | 'warning' | 'destructive' | 'outline' | 'surface' | 'radar'
 }
 
 export function Badge({ className, variant = 'default', children, ...props }: BadgeProps) {
   const variantStyles = {
-    default: 'bg-[#16263A] text-[#94A3B8] border-[#1E3A5F]',
-    cyan: 'bg-[#35C6E8]/10 text-[#35C6E8] border-[#35C6E8]/30',
-    teal: 'bg-[#35D0B0]/10 text-[#35D0B0] border-[#35D0B0]/30',
-    warning: 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/30',
-    destructive: 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/30',
-    outline: 'bg-transparent text-[#F1F5F9] border-[#1E3A5F]',
-    surface: 'bg-[#101D2D] text-[#F1F5F9] border-[#1E3A5F]',
+    default: 'bg-[#EAF2F9] text-[#15304B] border-[#DCE5EF]',
+    cyan: 'bg-[#DCECF9] text-[#245B8F] border-[#79B7E5]/50',
+    teal: 'bg-[#E1F5F2] text-[#0D837C] border-[#20AFA7]/40',
+    warning: 'bg-[#FEF3C7] text-[#B45309] border-[#FCD34D]',
+    destructive: 'bg-[#FFE4E6] text-[#BE123C] border-[#FDA4AF]',
+    outline: 'bg-white text-[#192B3C] border-[#DCE5EF]',
+    surface: 'bg-[#F0F6FC] text-[#15304B] border-[#DCECF9]',
+    radar: 'bg-[#E1F5F2] text-[#0D837C] border-[#20AFA7]/50 shadow-xs',
   }
 
   return (
     <span
       className={cn(
-        'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border transition-colors',
+        'inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium tracking-wide border transition-colors',
         variantStyles[variant],
         className
       )}

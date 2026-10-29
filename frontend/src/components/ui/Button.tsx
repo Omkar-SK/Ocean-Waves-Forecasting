@@ -17,19 +17,19 @@ export function Button({
   ...props
 }: ButtonProps) {
   const base =
-    'inline-flex items-center justify-center font-medium rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-[#35C6E8]/40 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer'
+    'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-[#20AFA7]/30 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer'
 
   const variants = {
     primary:
-      'bg-[#35C6E8] hover:bg-[#28B0D0] text-[#07111F] font-semibold shadow-md shadow-[#35C6E8]/20 border border-transparent',
+      'bg-[#20AFA7] hover:bg-[#1A9C94] text-white font-semibold shadow-xs border border-transparent active:scale-[0.98]',
     secondary:
-      'bg-[#16263A] hover:bg-[#1E3A5F] text-[#F1F5F9] border border-[#1E3A5F]',
+      'bg-white hover:bg-[#F0F6FC] text-[#15304B] border border-[#DCE5EF] hover:border-[#CBD5E1] shadow-xs active:scale-[0.98]',
     outline:
-      'bg-transparent hover:bg-[#16263A] text-[#35C6E8] border border-[#35C6E8]/50 hover:border-[#35C6E8]',
+      'bg-transparent hover:bg-[#EAF2F9] text-[#245B8F] border border-[#245B8F]/35 hover:border-[#245B8F] active:scale-[0.98]',
     teal:
-      'bg-[#35D0B0] hover:bg-[#28B999] text-[#07111F] font-semibold shadow-md shadow-[#35D0B0]/20 border border-transparent',
+      'bg-[#20AFA7] hover:bg-[#1A9C94] text-white font-semibold shadow-xs border border-transparent active:scale-[0.98]',
     ghost:
-      'bg-transparent hover:bg-[#16263A] text-[#94A3B8] hover:text-[#F1F5F9]',
+      'bg-transparent hover:bg-[#F0F6FC] text-[#64758A] hover:text-[#15304B] border border-transparent',
   }
 
   const sizes = {

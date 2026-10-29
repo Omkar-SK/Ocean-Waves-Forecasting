@@ -11,63 +11,81 @@ interface StatusIndicatorProps {
 export function StatusIndicator({ status, label, className, size = 'sm' }: StatusIndicatorProps) {
   const statusConfig = {
     online: {
-      color: 'bg-[#35D0B0]',
-      glow: 'shadow-[0_0_8px_rgba(53,208,176,0.8)]',
-      text: 'text-[#35D0B0]',
-      defaultLabel: 'Live Online',
+      color: 'bg-[#10B981]',
+      pulse: true,
+      text: 'text-[#065F46]',
+      bg: 'bg-[#EBFBF5]',
+      border: 'border-[#A7F3D0]',
+      defaultLabel: 'Live Stream',
     },
     healthy: {
-      color: 'bg-[#35D0B0]',
-      glow: 'shadow-[0_0_8px_rgba(53,208,176,0.8)]',
-      text: 'text-[#35D0B0]',
-      defaultLabel: 'Healthy',
+      color: 'bg-[#10B981]',
+      pulse: false,
+      text: 'text-[#065F46]',
+      bg: 'bg-[#EBFBF5]',
+      border: 'border-[#A7F3D0]',
+      defaultLabel: 'Operational',
     },
     degraded: {
-      color: 'bg-[#F59E0B]',
-      glow: 'shadow-[0_0_8px_rgba(245,158,11,0.8)]',
-      text: 'text-[#F59E0B]',
-      defaultLabel: 'Degraded / Demo',
+      color: 'bg-[#D97706]',
+      pulse: false,
+      text: 'text-[#92400E]',
+      bg: 'bg-[#FEF3C7]',
+      border: 'border-[#FDE68A]',
+      defaultLabel: 'Degraded Feed',
     },
     offline: {
-      color: 'bg-[#EF4444]',
-      glow: 'shadow-[0_0_8px_rgba(239,68,68,0.8)]',
-      text: 'text-[#EF4444]',
+      color: 'bg-[#E11D48]',
+      pulse: false,
+      text: 'text-[#9F1239]',
+      bg: 'bg-[#FFE4E6]',
+      border: 'border-[#FECDD3]',
       defaultLabel: 'Offline',
     },
     error: {
-      color: 'bg-[#EF4444]',
-      glow: 'shadow-[0_0_8px_rgba(239,68,68,0.8)]',
-      text: 'text-[#EF4444]',
-      defaultLabel: 'Error',
+      color: 'bg-[#E11D48]',
+      pulse: false,
+      text: 'text-[#9F1239]',
+      bg: 'bg-[#FFE4E6]',
+      border: 'border-[#FECDD3]',
+      defaultLabel: 'System Error',
     },
     syncing: {
-      color: 'bg-[#35C6E8]',
-      glow: 'shadow-[0_0_8px_rgba(53,198,232,0.8)]',
-      text: 'text-[#35C6E8]',
+      color: 'bg-[#397FB8]',
+      pulse: true,
+      text: 'text-[#1E40AF]',
+      bg: 'bg-[#EFF6FF]',
+      border: 'border-[#BFDBFE]',
       defaultLabel: 'Syncing',
     },
   }
 
   const current = statusConfig[status] || statusConfig.online
-  const dotSize = size === 'sm' ? 'w-2 h-2' : 'w-2.5 h-2.5'
+  const dotSize = size === 'sm' ? 'w-1.5 h-1.5' : 'w-2 h-2'
 
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#101D2D] border border-[#1E3A5F] text-xs font-medium',
+        'inline-flex items-center gap-2 px-2.5 py-1 rounded-full border text-xs font-mono font-medium transition-colors',
+        current.bg,
+        current.border,
         className
       )}
     >
-      <span className="relative flex items-center justify-center">
-        <span
-          className={cn(
-            'absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping',
-            current.color
-          )}
-        />
-        <span className={cn('relative inline-flex rounded-full', dotSize, current.color, current.glow)} />
+      <span className="relative flex h-2 w-2 items-center justify-center">
+        {current.pulse && (
+          <span
+            className={cn(
+              'absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping',
+              current.color
+            )}
+          />
+        )}
+        <span className={cn('relative inline-flex rounded-full', dotSize, current.color)} />
       </span>
-      <span className={cn('leading-none', current.text)}>{label || current.defaultLabel}</span>
+      <span className={cn('tracking-tight font-semibold', current.text)}>
+        {label || current.defaultLabel}
+      </span>
     </div>
   )
 }

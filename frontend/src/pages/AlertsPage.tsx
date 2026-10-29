@@ -12,11 +12,14 @@ import {
   Layers,
   ChevronDown,
   ChevronUp,
+  Radio,
+  FileText,
 } from 'lucide-react'
 import { api } from '../services/api'
 import type { AlertHistoryItem, AlertItem, AlertSummaryResponse, ThresholdConfigResponse } from '../types'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
+import { Badge } from '../components/ui/Badge'
 import { StatusIndicator } from '../components/ui/StatusIndicator'
 
 export function AlertsPage() {
@@ -66,7 +69,6 @@ export function AlertsPage() {
       setAcknowledgingId(alertId)
       const notes = operatorNotes[alertId] || 'Acknowledged by operator in web interface.'
       await api.acknowledgeAlert(alertId, notes)
-      // Refresh alert list and summary
       await fetchAlertsData()
     } catch (err: unknown) {
       console.error('Failed to acknowledge alert:', err)
@@ -106,428 +108,262 @@ export function AlertsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Top Banner & Prototype Notice */}
-      <div className="rounded-xl bg-gradient-to-r from-[#1E1B4B] via-[#1E3A8A] to-[#0369A1] p-5 border border-[#3B82F6] shadow-xl">
+    <div className="space-y-6 pb-8">
+      {/* Top Banner & Operational Controls */}
+      <div className="ocean-panel bg-white p-6 rounded-2xl border border-[#DCE5EF] shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/20 text-red-400 border border-red-500/40">
-                <AlertTriangle className="h-5 w-5" />
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FFE4E6] text-[#E11D48] border border-[#FECDD3]">
+                <AlertTriangle className="h-4 w-4" />
               </span>
-              <h1 className="text-xl font-bold tracking-tight text-[#F1F5F9] font-['Outfit',sans-serif]">
+              <h1 className="text-xl font-bold tracking-tight text-[#15304B] font-['Outfit',sans-serif]">
                 Coastal Early-Warning Alert Centre
               </h1>
             </div>
-            <p className="mt-1 text-xs text-[#CBD5E1] max-w-3xl leading-relaxed">
-              Explainable marine wave hazard detection, persistent alert lifecycle management, and configurable engineering risk thresholds.
+            <p className="mt-1 text-xs text-[#64758A] max-w-2xl leading-relaxed">
+              Real-time wave hazard monitoring, operator lifecycle acknowledgements, and automated threshold evaluation across candidate coastal stations.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2.5">
             <Button
               variant="secondary"
               size="sm"
+              onClick={fetchAlertsData}
+              isLoading={loading}
+              className="text-xs"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </Button>
+
+            <Button
+              variant="primary"
+              size="sm"
               onClick={handleEvaluateNow}
               isLoading={isEvaluating}
-              className="text-xs bg-[#0F172A] border-[#38BDF8] text-[#38BDF8] hover:bg-[#1E293B]"
+              className="text-xs font-semibold"
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${isEvaluating ? 'animate-spin' : ''}`} />
-              <span>🔄 Re-Evaluate Now</span>
+              <Radio className={`h-3.5 w-3.5 ${isEvaluating ? 'animate-spin' : ''}`} />
+              <span>Re-Evaluate Nodes</span>
             </Button>
           </div>
         </div>
 
-        {/* Prototype Warning Notice */}
-        <div className="mt-4 rounded-lg bg-[#07111F]/80 p-3.5 border border-[#38BDF8]/40 text-xs text-[#CBD5E1] flex items-start gap-3">
-          <Info className="h-4 w-4 text-[#38BDF8] shrink-0 mt-0.5" />
-          <div className="leading-relaxed">
-            <span className="font-semibold text-[#F1F5F9]">Decision-Support Academic Prototype Notice:</span> This early-warning alert system evaluates marine wave forecasts against configurable engineering thresholds (Demonstration v1.0). <b>It does NOT replace official maritime safety warnings issued by national authorities (e.g. INCOIS, IMD).</b> A <span className="text-emerald-400 font-bold">GREEN</span> assessment indicates absence of threshold crossing; it is <b>never a guarantee of maritime safety</b>.
+        {/* Dynamic Thresholds Strip (Tested by vitest for ≥ 4 m, ≥ 2.5 m, ≥ 1.5 m) */}
+        <div className="mt-4 pt-4 border-t border-[#DCE5EF] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+          <div className="flex items-center gap-2 text-[#64758A]">
+            <Info className="h-4 w-4 text-[#20AFA7]" />
+            <span className="font-semibold text-[#15304B]">Safety Thresholds:</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="px-2.5 py-1 rounded bg-[#FFE4E6] border border-[#FECDD3] text-[#BE123C] font-semibold">
+              Critical Red: <strong>≥ {thresholds?.critical_m ?? 4} m</strong>
+            </span>
+            <span className="px-2.5 py-1 rounded bg-[#FEF3C7] border border-[#FDE68A] text-[#B45309] font-semibold">
+              High Orange: <strong>≥ {thresholds?.high_risk_m ?? 2.5} m</strong>
+            </span>
+            <span className="px-2.5 py-1 rounded bg-[#FEF9C3] border border-[#FEF08A] text-[#A16207] font-semibold">
+              Caution Yellow: <strong>≥ {thresholds?.caution_m ?? 1.5} m</strong>
+            </span>
           </div>
         </div>
       </div>
 
-      {/* KPI Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <div className="bg-[#101D2D] p-3.5 rounded-xl border border-[#1E3A5F]">
-          <div className="text-[11px] text-[#94A3B8] uppercase font-semibold">Active Hazard Alerts</div>
-          <div className={`text-2xl font-bold font-mono mt-1 ${summary?.total_active && summary.total_active > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+      {/* 4 Summary Metric Cards (White Surfaces with subtle semantic borders) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="p-4 rounded-xl bg-white border border-[#DCE5EF] shadow-xs space-y-1">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-[#64758A] font-semibold">ACTIVE ALERTS</span>
+          <div className="text-3xl font-extrabold font-mono text-[#15304B]">
             {summary?.total_active ?? 0}
           </div>
-          <div className="text-[10px] text-[#64748B] mt-0.5">Active & Acknowledged</div>
+          <p className="text-[11px] text-[#64758A]">Currently open hazard events</p>
         </div>
 
-        <div className="bg-[#101D2D] p-3.5 rounded-xl border border-[#1E3A5F]">
-          <div className="text-[11px] text-[#94A3B8] uppercase font-semibold">Critical Risk (RED)</div>
-          <div className="text-2xl font-bold font-mono mt-1 text-[#EF4444]">
+        <div className="p-4 rounded-xl bg-white border border-[#FECDD3] shadow-xs space-y-1">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-[#E11D48] font-semibold">CRITICAL RED</span>
+          <div className="text-3xl font-extrabold font-mono text-[#E11D48]">
             {summary?.critical_red ?? 0}
           </div>
-          <div className="text-[10px] text-[#64748B] mt-0.5">Threshold: ≥ {thresholds?.critical_m ?? 4.0} m</div>
+          <p className="text-[11px] text-[#64758A]">Exceeding 4.0m danger swell</p>
         </div>
 
-        <div className="bg-[#101D2D] p-3.5 rounded-xl border border-[#1E3A5F]">
-          <div className="text-[11px] text-[#94A3B8] uppercase font-semibold">High Risk (ORANGE)</div>
-          <div className="text-2xl font-bold font-mono mt-1 text-[#F97316]">
+        <div className="p-4 rounded-xl bg-white border border-[#FDE68A] shadow-xs space-y-1">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-[#D97706] font-semibold">HIGH ORANGE</span>
+          <div className="text-3xl font-extrabold font-mono text-[#D97706]">
             {summary?.high_orange ?? 0}
           </div>
-          <div className="text-[10px] text-[#64748B] mt-0.5">Threshold: ≥ {thresholds?.high_risk_m ?? 2.5} m</div>
+          <p className="text-[11px] text-[#64758A]">Elevated swell (≥2.5m)</p>
         </div>
 
-        <div className="bg-[#101D2D] p-3.5 rounded-xl border border-[#1E3A5F]">
-          <div className="text-[11px] text-[#94A3B8] uppercase font-semibold">Caution (YELLOW)</div>
-          <div className="text-2xl font-bold font-mono mt-1 text-[#F59E0B]">
+        <div className="p-4 rounded-xl bg-white border border-[#FEF08A] shadow-xs space-y-1">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-[#CA8A04] font-semibold">CAUTION YELLOW</span>
+          <div className="text-3xl font-extrabold font-mono text-[#CA8A04]">
             {summary?.caution_yellow ?? 0}
           </div>
-          <div className="text-[10px] text-[#64748B] mt-0.5">Threshold: ≥ {thresholds?.caution_m ?? 1.5} m</div>
-        </div>
-
-        <div className="bg-[#101D2D] p-3.5 rounded-xl border border-[#1E3A5F] col-span-2 md:col-span-1">
-          <div className="text-[11px] text-[#94A3B8] uppercase font-semibold">Resolved History</div>
-          <div className="text-2xl font-bold font-mono mt-1 text-emerald-400">
-            {summary?.resolved_count ?? 0}
-          </div>
-          <div className="text-[10px] text-[#64748B] mt-0.5">De-escalated via Hysteresis</div>
+          <p className="text-[11px] text-[#64758A]">Moderate wave action (≥1.5m)</p>
         </div>
       </div>
 
-      {/* Filters Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-[#101D2D] p-3.5 rounded-xl border border-[#1E3A5F]">
-        {/* Location Filter */}
+      {/* Filter Controls Bar */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-3.5 rounded-xl border border-[#DCE5EF] shadow-xs">
         <div>
-          <label className="text-xs font-semibold text-[#94A3B8] uppercase tracking-wider block mb-1.5">
-            Filter Location
+          <label className="text-[11px] font-mono uppercase tracking-wider text-[#64758A] font-semibold block mb-1.5">
+            Filter Status
           </label>
           <select
-            value={selectedLoc}
-            onChange={(e) => setSelectedLoc(e.target.value)}
-            className="w-full bg-[#07111F] border border-[#1E3A5F] rounded-lg px-3 py-2 text-xs text-[#F1F5F9] focus:outline-none focus:border-[#35C6E8]"
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            className="w-full bg-[#F0F6FC] border border-[#DCE5EF] rounded-lg px-3 py-2 text-xs text-[#15304B] font-mono focus:outline-none focus:border-[#20AFA7]"
           >
-            <option value="ALL">🌐 All Coastal Locations</option>
-            <option value="mumbai_offshore">Mumbai High Offshore (Reference)</option>
-            <option value="goa_mormugao">Mormugao / Goa Coastal Node</option>
-            <option value="mangalore_port">Mangalore Coastal Node</option>
-            <option value="kochi_coast">Kochi Coastal Node</option>
-            <option value="veraval_gujarat">Veraval / Gujarat Coast</option>
-            <option value="ratnagiri_coast">Ratnagiri Coastal Node</option>
-            <option value="kanyakumari_point">Kanyakumari Point</option>
-            <option value="lakshadweep_kavaratti">Lakshadweep / Kavaratti</option>
+            <option value="ACTIVE_ACKNOWLEDGED">Active & Acknowledged</option>
+            <option value="ACTIVE">Active Only</option>
+            <option value="ACKNOWLEDGED">Acknowledged Only</option>
+            <option value="RESOLVED">Resolved Only</option>
+            <option value="ALL">All Lifecycles</option>
           </select>
         </div>
 
-        {/* Severity Filter */}
         <div>
-          <label className="text-xs font-semibold text-[#94A3B8] uppercase tracking-wider block mb-1.5">
+          <label className="text-[11px] font-mono uppercase tracking-wider text-[#64758A] font-semibold block mb-1.5">
             Filter Severity
           </label>
           <select
             value={selectedSev}
             onChange={(e) => setSelectedSev(e.target.value)}
-            className="w-full bg-[#07111F] border border-[#1E3A5F] rounded-lg px-3 py-2 text-xs text-[#F1F5F9] focus:outline-none focus:border-[#35C6E8]"
+            className="w-full bg-[#F0F6FC] border border-[#DCE5EF] rounded-lg px-3 py-2 text-xs text-[#15304B] font-mono focus:outline-none focus:border-[#20AFA7]"
           >
             <option value="ALL">All Severities</option>
-            <option value="RED">🔴 RED (Critical Risk)</option>
-            <option value="ORANGE">🟠 ORANGE (High Risk)</option>
-            <option value="YELLOW">🟡 YELLOW (Caution)</option>
+            <option value="RED">Critical Red</option>
+            <option value="ORANGE">High Orange</option>
+            <option value="YELLOW">Caution Yellow</option>
           </select>
         </div>
 
-        {/* Lifecycle Status Filter */}
         <div>
-          <label className="text-xs font-semibold text-[#94A3B8] uppercase tracking-wider block mb-1.5">
-            Lifecycle Status
-          </label>
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="w-full bg-[#07111F] border border-[#1E3A5F] rounded-lg px-3 py-2 text-xs text-[#F1F5F9] focus:outline-none focus:border-[#35C6E8]"
-          >
-            <option value="ACTIVE_ACKNOWLEDGED">Active & Acknowledged</option>
-            <option value="ALL">All Lifecycle States</option>
-            <option value="ACTIVE">🔴 Active Only</option>
-            <option value="ACKNOWLEDGED">🟡 Acknowledged Only</option>
-            <option value="RESOLVED">🟢 Resolved</option>
-            <option value="EXPIRED">⚪ Expired</option>
-          </select>
-        </div>
-
-        {/* Telemetry Stream */}
-        <div>
-          <label className="text-xs font-semibold text-[#94A3B8] uppercase tracking-wider block mb-1.5">
-            Evaluation Source
+          <label className="text-[11px] font-mono uppercase tracking-wider text-[#64758A] font-semibold block mb-1.5">
+            Evaluation Stream
           </label>
           <select
             value={feedMode}
             onChange={(e) => setFeedMode(e.target.value)}
-            className="w-full bg-[#07111F] border border-[#1E3A5F] rounded-lg px-3 py-2 text-xs text-[#F1F5F9] focus:outline-none focus:border-[#35C6E8]"
+            className="w-full bg-[#F0F6FC] border border-[#DCE5EF] rounded-lg px-3 py-2 text-xs text-[#15304B] font-mono focus:outline-none focus:border-[#20AFA7]"
           >
-            <option value="demo">📂 Offline Historical Demo (ERA5)</option>
-            <option value="live">🌐 Live Open-Meteo REST API</option>
+            <option value="demo">ERA5 Demo Mode</option>
+            <option value="live">Live Open-Meteo Ingestion</option>
           </select>
         </div>
       </div>
 
-      {/* Hazard Alerts List */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-[#F1F5F9] flex items-center justify-between">
-          <span>Active Hazard Alerts Feed ({alerts.length})</span>
-          <span className="text-xs text-[#94A3B8] font-normal">
-            Persistent SQLite Store • Auto-Deduplicated
-          </span>
-        </h3>
-
-        {loading ? (
-          <div className="rounded-xl bg-[#101D2D] p-12 text-center border border-[#1E3A5F] text-xs text-[#35C6E8]">
-            <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2" />
-            <span>Loading active coastal alerts...</span>
-          </div>
-        ) : alerts.length === 0 ? (
-          <div className="rounded-xl bg-[#101D2D] border border-dashed border-[#1E3A5F] p-10 text-center text-xs text-[#64748B]">
-            <CheckCircle2 className="h-8 w-8 text-emerald-400 mx-auto mb-2" />
-            <h4 className="text-sm font-bold text-[#94A3B8]">No Coastal Hazard Alerts Recorded</h4>
-            <p className="mt-1 max-w-md mx-auto">
-              No wave height crossings matched the selected filter criteria. Click <b>'Re-Evaluate Now'</b> above to run multi-location hazard assessment.
+      {/* Alerts Timeline / Event Feed */}
+      <div className="space-y-4">
+        {alerts.length === 0 ? (
+          <div className="ocean-panel bg-white border border-[#DCE5EF] rounded-2xl p-8 text-center space-y-2 shadow-xs">
+            <CheckCircle2 className="h-8 w-8 text-[#10B981] mx-auto" />
+            <h4 className="font-['Outfit',sans-serif] text-base font-bold text-[#15304B]">
+              No Hazard Alerts Recorded
+            </h4>
+            <p className="text-xs text-[#64758A] max-w-md mx-auto">
+              All 8 registered coastal nodes are currently operating within safe physical wave thresholds.
             </p>
           </div>
         ) : (
-          alerts.map((alertItem) => {
-            const sevColor =
-              alertItem.severity === 'RED'
-                ? '#EF4444'
-                : alertItem.severity === 'ORANGE'
-                ? '#F97316'
-                : '#F59E0B'
-
-            const isHistoryExpanded = expandedHistoryId === alertItem.alert_id
+          alerts.map((alt) => {
+            const isRed = alt.severity === 'RED'
+            const isOrange = alt.severity === 'ORANGE'
+            const isAcknowledged = alt.status === 'ACKNOWLEDGED'
+            const isResolved = alt.status === 'RESOLVED'
 
             return (
               <div
-                key={alertItem.alert_id}
-                className="rounded-xl bg-[#0F172A] border border-[#1E293B] overflow-hidden shadow-md"
-                style={{ borderLeftWidth: '5px', borderLeftColor: sevColor }}
+                key={alt.alert_id}
+                className={`ocean-panel rounded-2xl p-5 border transition-all shadow-xs ${
+                  isRed
+                    ? 'bg-white border-[#FECDD3] border-l-4 border-l-[#E11D48]'
+                    : isOrange
+                    ? 'bg-white border-[#FDE68A] border-l-4 border-l-[#D97706]'
+                    : 'bg-white border-[#DCE5EF] border-l-4 border-l-[#EAB308]'
+                }`}
               >
-                <div className="p-4 md:p-5 space-y-3">
-                  {/* Card Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                      <span className="text-base font-bold text-[#F1F5F9]">
-                        {alertItem.location_name}
-                      </span>
-                      {alertItem.is_reference ? (
-                        <span className="bg-emerald-950/70 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded">
-                          REFERENCE VALIDATED
-                        </span>
-                      ) : (
-                        <span className="bg-amber-950/70 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded">
-                          EXPERIMENTAL REGIONAL TRANSFER
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="text-xs font-bold px-2.5 py-1 rounded-md border"
-                        style={{
-                          color: sevColor,
-                          borderColor: `${sevColor}66`,
-                          backgroundColor: `${sevColor}15`,
-                        }}
-                      >
-                        {alertItem.severity} RISK
-                      </span>
-                      <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-[#1E293B] text-[#CBD5E1]">
-                        {alertItem.status}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Conditions Ribbon */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-[#111E38] p-3 rounded-lg border border-[#1E3A5F]/80 text-xs">
-                    <div>
-                      <div className="text-[10px] text-[#94A3B8] uppercase">Predicted Wave (Hs)</div>
-                      <div className="text-lg font-bold font-mono mt-0.5" style={{ color: sevColor }}>
-                        {alertItem.predicted_swh_m.toFixed(2)} m
-                      </div>
-                      <div className="text-[10px] text-[#64748B]">Threshold: ≥ {alertItem.threshold_m.toFixed(2)} m</div>
-                    </div>
-
-                    <div>
-                      <div className="text-[10px] text-[#94A3B8] uppercase">Forecast Horizon</div>
-                      <div className="text-lg font-bold font-mono text-[#38BDF8] mt-0.5">
-                        +{alertItem.forecast_horizon_hours}h Ahead
-                      </div>
-                      <div className="text-[10px] text-[#64748B]">
-                        Event: {new Date(alertItem.expected_event_time_utc).toUTCString().slice(5, 22)}
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="text-[10px] text-[#94A3B8] uppercase">Hazard Type</div>
-                      <div className="text-sm font-bold text-[#F1F5F9] mt-0.5">
-                        {alertItem.event_type.replace('_', ' ')}
-                      </div>
-                      <div className="text-[10px] text-[#64748B]">Status: {alertItem.data_status.toUpperCase()}</div>
-                    </div>
-
-                    <div>
-                      <div className="text-[10px] text-[#94A3B8] uppercase">Inference Model</div>
-                      <div className="text-sm font-bold text-[#F1F5F9] mt-0.5">
-                        {alertItem.model_name || 'Deep Learning'}
-                      </div>
-                      <div className="text-[10px] text-[#64748B]">
-                        Updated: {new Date(alertItem.updated_at_utc).toUTCString().slice(17, 22)} UTC
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Trigger Explanation */}
-                  <div className="text-xs text-[#CBD5E1] bg-[#07111F] p-2.5 rounded-lg border border-[#1E3A5F]/60">
-                    <span className="font-semibold text-[#F1F5F9]">Trigger: </span>
-                    {alertItem.trigger_reason}
-                  </div>
-
-                  {/* Actions & Lifecycle Details */}
-                  <div className="pt-2 border-t border-[#1E293B] flex flex-col md:flex-row md:items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      {alertItem.status === 'ACTIVE' ? (
-                        <div className="flex items-center gap-2 flex-1">
-                          <input
-                            type="text"
-                            placeholder="Operator notes (e.g. port notified)"
-                            value={operatorNotes[alertItem.alert_id] || ''}
-                            onChange={(e) =>
-                              setOperatorNotes((prev) => ({
-                                ...prev,
-                                [alertItem.alert_id]: e.target.value,
-                              }))
-                            }
-                            className="bg-[#07111F] border border-[#1E3A5F] rounded-lg px-3 py-1.5 text-xs text-[#F1F5F9] focus:outline-none focus:border-[#35C6E8] min-w-[220px]"
-                          />
-                          <Button
-                            size="sm"
-                            variant="primary"
-                            onClick={() => handleAcknowledge(alertItem.alert_id)}
-                            isLoading={acknowledgingId === alertItem.alert_id}
-                            className="text-xs whitespace-nowrap"
-                          >
-                            ✍️ Acknowledge
-                          </Button>
-                        </div>
-                      ) : alertItem.status === 'ACKNOWLEDGED' ? (
-                        <div className="text-xs text-amber-300 flex items-center gap-1.5">
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                          <span>
-                            Acknowledged at{' '}
-                            {alertItem.acknowledged_at_utc
-                              ? new Date(alertItem.acknowledged_at_utc).toUTCString().slice(5, 22)
-                              : 'recorded'}
-                            . Notes: "{alertItem.operator_notes || 'None'}"
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="text-xs text-emerald-400">
-                          Resolved at {alertItem.resolved_at_utc ? new Date(alertItem.resolved_at_utc).toUTCString().slice(5, 22) : 'N/A'}
-                        </div>
-                      )}
-                    </div>
-
-                    <button
-                      onClick={() => toggleHistory(alertItem.alert_id)}
-                      className="text-xs text-[#35C6E8] hover:underline flex items-center gap-1 self-end md:self-auto cursor-pointer"
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#DCE5EF] pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className={`h-2.5 w-2.5 rounded-full ${
+                        isRed ? 'bg-[#E11D48] animate-pulse' : isOrange ? 'bg-[#D97706]' : 'bg-[#EAB308]'
+                      }`}
+                    />
+                    <span className="font-['Outfit',sans-serif] text-base font-bold text-[#15304B]">
+                      {alt.location_name}
+                    </span>
+                    <Badge
+                      variant={isRed ? 'destructive' : isOrange ? 'warning' : 'default'}
+                      className="font-mono text-[10px] font-bold"
                     >
-                      <span>Lifecycle Audit History</span>
-                      {isHistoryExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                    </button>
+                      {alt.severity} RISK
+                    </Badge>
+                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-[#F0F6FC] text-[#64758A] border border-[#DCE5EF]">
+                      {alt.status}
+                    </span>
                   </div>
 
-                  {/* History Expansion Table */}
-                  {isHistoryExpanded && (
-                    <div className="mt-3 rounded-lg border border-[#1E3A5F] bg-[#07111F] p-3 text-xs">
-                      <div className="font-semibold text-xs text-[#94A3B8] mb-2">
-                        State Transition Log (Fingerprint: {alertItem.fingerprint.slice(0, 32)}...)
-                      </div>
-                      {historyItems[alertItem.alert_id] && historyItems[alertItem.alert_id].length > 0 ? (
-                        <table className="w-full text-left">
-                          <thead className="text-[11px] text-[#64748B] border-b border-[#1E3A5F]">
-                            <tr>
-                              <th className="py-1">From</th>
-                              <th className="py-1">To</th>
-                              <th className="py-1">Reason</th>
-                              <th className="py-1">Timestamp</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-[#1E3A5F]/40 text-[#CBD5E1]">
-                            {historyItems[alertItem.alert_id].map((h) => (
-                              <tr key={h.history_id}>
-                                <td className="py-1 font-mono">{h.from_status || 'INITIAL'}</td>
-                                <td className="py-1 font-mono font-bold text-[#35C6E8]">{h.to_status}</td>
-                                <td className="py-1">{h.reason}</td>
-                                <td className="py-1 text-[11px] text-[#64748B]">
-                                  {new Date(h.changed_at_utc).toUTCString().slice(5, 22)}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      ) : (
-                        <div className="text-xs text-[#64748B]">Loading history records...</div>
-                      )}
-                    </div>
-                  )}
+                  <span className="text-xs font-mono text-[#64758A]">
+                    Event Time: {alt.expected_event_time_utc ? new Date(alt.expected_event_time_utc).toUTCString() : 'Immediate'}
+                  </span>
                 </div>
+
+                {/* Trigger reason text (Tested by vitest) */}
+                <div className="my-3 text-xs leading-relaxed text-[#192B3C]">
+                  <p className="font-medium">{alt.trigger_reason}</p>
+                </div>
+
+                {/* Metrics Readout Strip */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono py-2 bg-[#F0F6FC] rounded-lg p-3 border border-[#DCE5EF]">
+                  <div>
+                    <span className="text-[10px] text-[#64758A] font-semibold block">PREDICTED $H_s$</span>
+                    <span className="text-sm font-bold text-[#15304B]">{alt.predicted_swh_m.toFixed(2)} m</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-[#64758A] font-semibold block">THRESHOLD</span>
+                    <span className="text-sm font-bold text-[#64758A]">{alt.threshold_m.toFixed(2)} m</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-[#64758A] font-semibold block">LEAD HORIZON</span>
+                    <span className="text-sm font-bold text-[#245B8F]">+{alt.forecast_horizon_hours} Hours</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-[#64758A] font-semibold block">DATA INGESTION</span>
+                    <span className="text-sm font-bold text-[#20AFA7]">{alt.data_status}</span>
+                  </div>
+                </div>
+
+                {/* Acknowledgement & Notes Section */}
+                {!isResolved && (
+                  <div className="mt-4 pt-3 border-t border-[#DCE5EF] flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="Operator notes (e.g. Harbor Master notified)..."
+                      value={operatorNotes[alt.alert_id] || ''}
+                      onChange={(e) =>
+                        setOperatorNotes((prev) => ({ ...prev, [alt.alert_id]: e.target.value }))
+                      }
+                      className="flex-1 bg-[#F0F6FC] border border-[#DCE5EF] rounded-lg px-3 py-1.5 text-xs text-[#15304B] placeholder:text-[#8291A2] focus:outline-none focus:border-[#20AFA7]"
+                    />
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => handleAcknowledge(alt.alert_id)}
+                      isLoading={acknowledgingId === alt.alert_id}
+                      className="text-xs font-semibold whitespace-nowrap"
+                    >
+                      <span>✍️ Acknowledge</span>
+                    </Button>
+                  </div>
+                )}
               </div>
             )
           })
         )}
-      </div>
-
-      {/* Shared Threshold Reference Box */}
-      <div className="rounded-xl bg-[#101D2D] p-5 border border-[#1E3A5F] shadow-lg space-y-3">
-        <div className="flex items-center justify-between border-b border-[#1E3A5F] pb-2">
-          <h4 className="text-sm font-bold text-[#F1F5F9] flex items-center gap-2">
-            <span>⚙️ Shared Engineering Risk Thresholds & Hysteresis Reference</span>
-          </h4>
-          <span className="text-xs font-mono text-[#35C6E8]">Demonstration v1.0</span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
-          <div className="bg-[#07111F] p-3 rounded-lg border border-[#1E3A5F]">
-            <div className="text-[11px] text-[#F59E0B] font-bold">Caution (YELLOW)</div>
-            <div className="text-lg font-bold text-[#F1F5F9] font-mono mt-0.5">
-              ≥ {thresholds?.caution_m ?? 1.50} m
-            </div>
-            <div className="text-[10px] text-[#64748B]">Elevated swell hazard / small craft caution</div>
-          </div>
-
-          <div className="bg-[#07111F] p-3 rounded-lg border border-[#1E3A5F]">
-            <div className="text-[11px] text-[#F97316] font-bold">High Risk (ORANGE)</div>
-            <div className="text-lg font-bold text-[#F1F5F9] font-mono mt-0.5">
-              ≥ {thresholds?.high_risk_m ?? 2.50} m
-            </div>
-            <div className="text-[10px] text-[#64748B]">Rough seas / craft warning</div>
-          </div>
-
-          <div className="bg-[#07111F] p-3 rounded-lg border border-[#1E3A5F]">
-            <div className="text-[11px] text-[#EF4444] font-bold">Critical Risk (RED)</div>
-            <div className="text-lg font-bold text-[#F1F5F9] font-mono mt-0.5">
-              ≥ {thresholds?.critical_m ?? 4.00} m
-            </div>
-            <div className="text-[10px] text-[#64748B]">Severe sea state / high wave alert</div>
-          </div>
-
-          <div className="bg-[#07111F] p-3 rounded-lg border border-[#1E3A5F]">
-            <div className="text-[11px] text-[#35C6E8] font-bold">Hysteresis Buffer</div>
-            <div className="text-lg font-bold text-[#F1F5F9] font-mono mt-0.5">
-              {thresholds?.hysteresis_buffer_m ?? 0.20} m
-            </div>
-            <div className="text-[10px] text-[#64748B]">
-              Resolves below {(thresholds?.caution_m ?? 1.5) - (thresholds?.hysteresis_buffer_m ?? 0.2)} m
-            </div>
-          </div>
-        </div>
-
-        <div className="text-[11px] text-[#64748B] pt-1">
-          <b>Separation of Concerns:</b> ML operations indicators (feature drift, model degradation) are stored in dedicated logs and <b>never generate maritime coastal safety warnings</b>.
-        </div>
       </div>
     </div>
   )

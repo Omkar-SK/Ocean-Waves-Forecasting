@@ -2,16 +2,32 @@ import React from 'react'
 import { cn } from '../../lib/utils'
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  glow?: 'cyan' | 'teal' | 'none'
+  glow?: 'teal' | 'cyan' | 'coral' | 'none'
+  variant?: 'panel' | 'raised' | 'ice' | 'navy'
 }
 
-export function Card({ className, glow = 'none', children, ...props }: CardProps) {
+export function Card({
+  className,
+  glow = 'none',
+  variant = 'panel',
+  children,
+  ...props
+}: CardProps) {
+  const variantClasses = {
+    panel: 'bg-white border-[#DCE5EF] text-[#192B3C] shadow-xs',
+    raised: 'bg-white border-[#DCE5EF] text-[#192B3C] shadow-sm',
+    ice: 'bg-[#F0F6FC] border-[#DCECF9] text-[#192B3C]',
+    navy: 'bg-[#15304B] border-[#245B8F] text-white',
+  }
+
   return (
     <div
       className={cn(
-        'ocean-card bg-[#101D2D] border border-[#1E3A5F] rounded-xl text-[#F1F5F9] shadow-lg transition-all duration-200',
-        glow === 'cyan' && 'ocean-glow-cyan border-[#35C6E8]/40',
-        glow === 'teal' && 'ocean-glow-teal border-[#35D0B0]/40',
+        'ocean-card rounded-xl transition-all duration-200',
+        variantClasses[variant],
+        glow === 'teal' && 'border-[#20AFA7]/50 shadow-[0_0_15px_rgba(32,175,167,0.15)]',
+        glow === 'cyan' && 'border-[#397FB8]/40 shadow-[0_0_15px_rgba(57,127,184,0.15)]',
+        glow === 'coral' && 'border-[#E11D48]/40 shadow-[0_0_15px_rgba(225,29,72,0.12)]',
         className
       )}
       {...props}
@@ -21,7 +37,11 @@ export function Card({ className, glow = 'none', children, ...props }: CardProps
   )
 }
 
-export function CardHeader({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+export function CardHeader({
+  className,
+  children,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div className={cn('p-5 pb-3 flex flex-col space-y-1.5', className)} {...props}>
       {children}
@@ -29,10 +49,17 @@ export function CardHeader({ className, children, ...props }: React.HTMLAttribut
   )
 }
 
-export function CardTitle({ className, children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
+export function CardTitle({
+  className,
+  children,
+  ...props
+}: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
-      className={cn('text-base font-semibold leading-tight text-[#F1F5F9] font-["Outfit",sans-serif]', className)}
+      className={cn(
+        'text-base font-bold leading-tight text-[#15304B] font-["Outfit",sans-serif] tracking-tight',
+        className
+      )}
       {...props}
     >
       {children}
@@ -40,15 +67,23 @@ export function CardTitle({ className, children, ...props }: React.HTMLAttribute
   )
 }
 
-export function CardDescription({ className, children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
+export function CardDescription({
+  className,
+  children,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
-    <p className={cn('text-xs text-[#94A3B8] font-normal leading-relaxed', className)} {...props}>
+    <p className={cn('text-xs text-[#64758A] font-normal leading-relaxed', className)} {...props}>
       {children}
     </p>
   )
 }
 
-export function CardContent({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+export function CardContent({
+  className,
+  children,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div className={cn('p-5 pt-2', className)} {...props}>
       {children}
@@ -56,9 +91,16 @@ export function CardContent({ className, children, ...props }: React.HTMLAttribu
   )
 }
 
-export function CardFooter({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+export function CardFooter({
+  className,
+  children,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn('p-5 pt-0 flex items-center border-t border-[#1E3A5F]/40 mt-4', className)} {...props}>
+    <div
+      className={cn('p-5 pt-0 flex items-center border-t border-[#DCE5EF] mt-4', className)}
+      {...props}
+    >
       {children}
     </div>
   )

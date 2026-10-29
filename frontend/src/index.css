@@ -2,27 +2,41 @@
 @import "leaflet/dist/leaflet.css";
 
 @theme {
-  --color-ocean-bg: #07111f;
-  --color-ocean-panel: #101d2d;
-  --color-ocean-surface: #16263a;
-  --color-ocean-border: #1e3a5f;
-  --color-ocean-border-light: #2a4e7a;
-  --color-ocean-cyan: #35c6e8;
-  --color-ocean-cyan-glow: rgba(53, 198, 232, 0.15);
-  --color-ocean-teal: #35d0b0;
-  --color-ocean-teal-glow: rgba(53, 208, 176, 0.15);
-  --color-ocean-text: #f1f5f9;
-  --color-ocean-muted: #94a3b8;
-  --color-ocean-amber: #f59e0b;
-  --color-ocean-red: #ef4444;
+  --color-ocean-bg: #F4F7FB;
+  --color-ocean-surface: #FFFFFF;
+  --color-ocean-secondary: #EAF2F9;
+  --color-ocean-ice: #F0F6FC;
+  --color-ocean-border: #DCE5EF;
+  --color-ocean-border-light: #EBF1F7;
+
+  --color-ocean-navy: #15304B;
+  --color-ocean-navy-deep: #0D2034;
+  --color-ocean-blue: #245B8F;
+  --color-ocean-medium: #397FB8;
+  --color-ocean-sky: #79B7E5;
+  --color-ocean-pale: #DCECF9;
+
+  --color-ocean-teal: #20AFA7;
+  --color-ocean-teal-soft: #E1F5F2;
+
+  --color-ocean-text: #192B3C;
+  --color-ocean-muted: #64758A;
+  --color-ocean-subtle: #8291A2;
+
+  --color-ocean-green: #10B981;
+  --color-ocean-green-soft: #EBFBF5;
+  --color-ocean-amber: #D97706;
+  --color-ocean-amber-soft: #FEF3C7;
+  --color-ocean-coral: #E11D48;
+  --color-ocean-coral-soft: #FFE4E6;
 
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Outfit', 'Inter', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 * {
@@ -32,8 +46,8 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #07111f;
-  color: #f1f5f9;
+  background-color: #F4F7FB;
+  color: #192B3C;
   font-family: var(--font-sans);
   min-height: 100vh;
   overflow-x: hidden;
@@ -41,64 +55,171 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbars */
+/* Custom scrollbars - clean light marine */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #07111f;
+  background: #F4F7FB;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e3a5f;
+  background: #DCE5EF;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #35c6e8;
+  background: #397FB8;
 }
 
-/* Card glass / subtle ocean surface styling */
+/* Keyframes for subtle ocean motion */
+@keyframes oceanPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes oceanFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes radarSweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes waveOscillate {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-ocean-fade {
+  animation: oceanFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-ocean-pulse {
+  animation: oceanPulse 2.5s ease-in-out infinite;
+}
+
+.animate-wave-float {
+  animation: waveOscillate 4s ease-in-out infinite;
+}
+
+.animate-radar-sweep {
+  animation: radarSweep 6s linear infinite;
+  transform-origin: center;
+}
+
+/* Surface styles: White primary panels & crisp separation */
 .ocean-card {
-  background-color: #101d2d;
-  border: 1px solid #1e3a5f;
-  border-radius: 0.75rem;
+  background-color: #FFFFFF;
+  border: 1px solid #DCE5EF;
+  border-radius: 0.875rem;
+  box-shadow: 0 1px 3px 0 rgba(21, 48, 75, 0.04), 0 1px 2px -1px rgba(21, 48, 75, 0.03);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .ocean-card:hover {
-  border-color: #2a4e7a;
+  border-color: #CBD5E1;
+  box-shadow: 0 4px 12px -2px rgba(21, 48, 75, 0.08);
 }
 
-.ocean-glow-cyan {
-  box-shadow: 0 0 20px -5px rgba(53, 198, 232, 0.25);
+.ocean-panel {
+  background-color: #FFFFFF;
+  border: 1px solid #DCE5EF;
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px -2px rgba(21, 48, 75, 0.05);
 }
 
-.ocean-glow-teal {
-  box-shadow: 0 0 20px -5px rgba(53, 208, 176, 0.25);
+.ocean-panel-ice {
+  background-color: #F0F6FC;
+  border: 1px solid #DCECF9;
+  border-radius: 1rem;
 }
 
-/* Recharts customization */
+.ocean-panel-navy {
+  background: linear-gradient(135deg, #15304B 0%, #0D2034 100%);
+  border: 1px solid #245B8F;
+  border-radius: 1rem;
+  color: #FFFFFF;
+}
+
+/* Subtle highlights */
+.glow-teal-sm {
+  box-shadow: 0 0 16px -2px rgba(32, 175, 167, 0.2);
+}
+
+.glow-blue-sm {
+  box-shadow: 0 0 16px -2px rgba(36, 91, 143, 0.15);
+}
+
+/* Background subtle grid pattern for light mode */
+.bg-ocean-grid {
+  background-image: 
+    linear-gradient(to right, rgba(220, 229, 239, 0.6) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(220, 229, 239, 0.6) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.bg-ocean-dots {
+  background-image: radial-gradient(rgba(57, 127, 184, 0.15) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Recharts styling - Clean White Theme */
 .recharts-default-tooltip {
-  background-color: #101d2d !important;
-  border: 1px solid #1e3a5f !important;
+  background-color: #FFFFFF !important;
+  border: 1px solid #DCE5EF !important;
   border-radius: 8px !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 10px 25px -5px rgba(21, 48, 75, 0.12) !important;
   padding: 10px 14px !important;
+  color: #192B3C !important;
 }
 
 .recharts-cartesian-grid line {
-  stroke: #16263a !important;
+  stroke: #E2E8F0 !important;
+  stroke-dasharray: 3 3;
 }
 
 .recharts-cartesian-axis-line,
 .recharts-cartesian-axis-tick-line {
-  stroke: #1e3a5f !important;
+  stroke: #CBD5E1 !important;
 }
 
 .recharts-text {
-  fill: #94a3b8 !important;
+  fill: #64758A !important;
+  font-family: var(--font-mono) !important;
   font-size: 11px !important;
+}
+
+/* Accessibility: respect user preferences for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

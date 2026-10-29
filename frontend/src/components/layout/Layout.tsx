@@ -46,6 +46,7 @@ const pageTitles: Record<string, { title: string; subtitle: string }> = {
 
 export function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const [health, setHealth] = useState<HealthResponse | null>(null)
   const [healthLoading, setHealthLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -72,7 +73,6 @@ export function Layout() {
   const handleManualRefresh = async () => {
     setIsRefreshing(true)
     await fetchHealth()
-    // Dispatch a custom event so active pages can refresh their own local data
     window.dispatchEvent(new CustomEvent('oceancast:refresh'))
     setTimeout(() => setIsRefreshing(false), 600)
   }
@@ -83,8 +83,13 @@ export function Layout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#07111F] text-[#F1F5F9]">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className="flex min-h-screen bg-[#F4F7FB] text-[#192B3C] selection:bg-[#20AFA7]/20 selection:text-[#15304B]">
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        isCollapsed={isCollapsed}
+        onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+      />
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header
@@ -97,10 +102,8 @@ export function Layout() {
           isRefreshing={isRefreshing}
         />
 
-        <main className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8">
-          <div className="mx-auto max-w-7xl">
-            <Outlet />
-          </div>
+        <main className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8 animate-ocean-fade">
+          <Outlet />
         </main>
       </div>
     </div>
