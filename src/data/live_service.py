@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 import urllib.parse
 import urllib.request
+import uuid
 
 import numpy as np
 import pandas as pd
@@ -37,6 +38,9 @@ class LiveFetchResult:
     is_demo: bool = False
     external_nwp_forecasts: Dict[int, float] = field(default_factory=dict)
     notes: List[str] = field(default_factory=list)
+    location_id: str = "mumbai_offshore"
+    data_status: str = "fresh"
+    forecast_issue_time_utc: Optional[datetime] = None
 
 
 @dataclass
@@ -56,6 +60,8 @@ class LiveForecastResult:
     is_demo: bool
     source_info: Dict[str, Any]
     generated_at_utc: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    location_id: str = "mumbai_offshore"
+    validation_status: str = "reference_validated"
 
 
 def fetch_live_marine_and_weather(
@@ -64,6 +70,7 @@ def fetch_live_marine_and_weather(
     timeout_s: int = 10,
     past_days: int = 2,
     forecast_days: int = 2,
+    location_id: Optional[str] = None,
 ) -> LiveFetchResult:
     """
     Fetch near-real-time marine wave conditions and 10m wind from Open-Meteo REST APIs.
@@ -85,6 +92,8 @@ def fetch_live_marine_and_weather(
         Number of past days of hourly history to retrieve.
     forecast_days : int
         Number of future forecast days to retrieve for external NWP comparison.
+    location_id : Optional[str]
+        Optional registered location ID.
 
     Returns
     -------
@@ -169,6 +178,10 @@ def fetch_live_marine_and_weather(
         if not match_row.empty and not pd.isna(match_row["swh"].values[0]):
             external_nwp[h] = float(match_row["swh"].values[0])
 
+    cycle_hour = (current_hour_utc.hour // 6) * 6
+    issue_time_utc = current_hour_utc.replace(hour=cycle_hour, minute=0, second=0, microsecond=0)
+    loc_id = location_id or ("mumbai_offshore" if (abs(latitude - 18.5) < 0.05 and abs(longitude - 72.5) < 0.05) else "custom_node")
+
     return LiveFetchResult(
         raw_df=merged,
         source_name="Open-Meteo Marine & Atmospheric API (ECMWF WAM / IFS Global Feeds)",
@@ -182,6 +195,9 @@ def fetch_live_marine_and_weather(
             "Operational wave model: ECMWF Wave Action Model (WAM)",
             "Operational atmospheric model: ECMWF Integrated Forecasting System (IFS)",
         ],
+        location_id=loc_id,
+        data_status="fresh",
+        forecast_issue_time_utc=issue_time_utc,
     )
 
 
@@ -238,6 +254,9 @@ def fetch_demo_era5_window(
             "DEMO MODE ACTIVE: Using historical ERA5 observation window ending 2026-10-17 23:00 UTC.",
             "This is NOT a real-time forecast. Provided for offline validation and pipeline inspection.",
         ],
+        location_id="mumbai_offshore",
+        data_status="offline_demo",
+        forecast_issue_time_utc=latest_time.to_pydatetime(),
     )
 
 
@@ -429,6 +448,8 @@ def predict_live_forecast(
     external_nwp_forecast: Optional[float] = None,
     is_demo: bool = False,
     source_info: Optional[Dict[str, Any]] = None,
+    location_id: str = "mumbai_offshore",
+    validation_status: str = "reference_validated",
 ) -> LiveForecastResult:
     """
     Execute end-to-end inference for a verified 24h input window.
@@ -466,7 +487,7 @@ def predict_live_forecast(
     # 7. Sea state classification
     sea_state_desc, sea_state_color = get_sea_state_classification(forecast_swh)
 
-    return LiveForecastResult(
+    res = LiveForecastResult(
         model_name=meta.get("model_class", model_type),
         horizon_hours=horizon,
         checkpoint_file=ckpt_name,
@@ -480,7 +501,62 @@ def predict_live_forecast(
         input_window_df=prepared_df,
         is_demo=is_demo,
         source_info=source_info or {},
+        location_id=location_id,
+        validation_status=validation_status,
     )
+
+    # Immutable ledger recording (prospective audit tracking)
+    try:
+        from src.intelligence.monitoring import (
+            ForecastLedgerRecord,
+            ForecastSourceCategory,
+            compute_ledger_fingerprint,
+            get_monitoring_store,
+        )
+        from src.intelligence.nodes import get_coastal_registry
+
+        coastal_reg = get_coastal_registry()
+        node_obj = coastal_reg.get(location_id)
+        node_lat = node_obj.latitude if node_obj else 18.5
+        node_lon = node_obj.longitude if node_obj else 72.5
+        src_cat = ForecastSourceCategory.DEMO_REPLAY if is_demo else ForecastSourceCategory.PROJECT_MODEL
+
+        fingerprint = compute_ledger_fingerprint(
+            location_id=location_id,
+            model_name=res.model_name,
+            horizon_hours=horizon,
+            anchor_time_utc=res.anchor_time_utc,
+            target_time_utc=res.target_time_utc,
+            source_category=src_cat,
+        )
+        ledger_rec = ForecastLedgerRecord(
+            forecast_id=f"fc_{uuid.uuid4().hex[:12]}",
+            fingerprint=fingerprint,
+            location_id=location_id,
+            latitude=node_lat,
+            longitude=node_lon,
+            issue_time_utc=datetime.now(timezone.utc),
+            anchor_time_utc=res.anchor_time_utc,
+            target_time_utc=res.target_time_utc,
+            horizon_hours=horizon,
+            predicted_swh_m=forecast_swh,
+            units="meters",
+            model_name=res.model_name,
+            checkpoint_name=ckpt_name,
+            source_category=src_cat,
+            data_source="OfflineDemoProvider" if is_demo else "OpenMeteoProvider",
+            data_status="offline_demo" if is_demo else "fresh",
+            validation_status=validation_status,
+            is_reference=(location_id == "mumbai_offshore"),
+            persistence_swh_m=persistence_swh,
+            external_nwp_swh_m=external_nwp_forecast,
+        )
+        get_monitoring_store().record_forecast(ledger_rec)
+    except Exception:
+        # Non-blocking: ledger recording failure must not abort core forecast delivery
+        pass
+
+    return res
 
 
 def get_sea_state_classification(swh_meters: float) -> Tuple[str, str]:

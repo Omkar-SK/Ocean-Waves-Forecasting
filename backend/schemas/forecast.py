@@ -13,6 +13,7 @@ class ForecastRequest(BaseModel):
     source: str = Field("live", description="'live' (Open-Meteo REST) or 'demo' (ERA5 historical window)")
     latitude: Optional[float] = Field(18.50, description="Target offshore latitude in °N")
     longitude: Optional[float] = Field(72.50, description="Target offshore longitude in °E")
+    location_id: Optional[str] = Field(None, description="Optional registered coastal node ID (e.g. 'mumbai_offshore', 'goa_mormugao')")
 
 
 class SingleModelForecast(BaseModel):
@@ -37,6 +38,21 @@ class ObservationWindowStep(BaseModel):
     v10: Optional[float] = None
 
 
+class CoastalNodeSchema(BaseModel):
+    location_id: str
+    name: str
+    latitude: float
+    longitude: float
+    coordinate_label: str
+    region: str
+    timezone: str
+    enabled: bool
+    is_reference: bool
+    validation_status: str
+    description: str
+    notes: List[str]
+
+
 class ForecastResponse(BaseModel):
     anchor_time_utc: datetime
     target_time_utc: datetime
@@ -50,6 +66,12 @@ class ForecastResponse(BaseModel):
     is_demo: bool
     notes: List[str]
     generated_at_utc: datetime
+    location_id: Optional[str] = "mumbai_offshore"
+    location_name: Optional[str] = "Mumbai Offshore (Reference Node)"
+    is_reference: bool = True
+    validation_status: str = "reference_validated"
+    data_status: str = "fresh"
+    forecast_issue_time_utc: Optional[datetime] = None
 
 
 class ForecastStatusResponse(BaseModel):
@@ -59,3 +81,6 @@ class ForecastStatusResponse(BaseModel):
     data_freshness_minutes: Optional[int] = None
     checkpoints_ready: Dict[str, bool]
     message: str
+    location_id: Optional[str] = "mumbai_offshore"
+    validation_status: Optional[str] = "reference_validated"
+

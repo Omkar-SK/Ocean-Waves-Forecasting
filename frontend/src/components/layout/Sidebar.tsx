@@ -3,6 +3,10 @@ import { NavLink } from 'react-router-dom'
 import {
   Compass,
   Activity,
+  Map,
+  AlertTriangle,
+  Radio,
+  TrendingUp,
   BarChart3,
   History,
   Info,
@@ -23,19 +27,37 @@ const navItems = [
     name: 'Overview',
     path: '/',
     icon: Compass,
-    badge: 'Main',
+    badge: 'Hub',
   },
   {
     name: 'Live Forecast',
     path: '/live',
     icon: Activity,
-    badge: 'Operational',
+    badge: 'DL + NWP',
   },
   {
-    name: 'Model Comparison',
-    path: '/comparison',
-    icon: BarChart3,
-    badge: 'Benchmark',
+    name: 'Coastal Risk Map',
+    path: '/map',
+    icon: Map,
+    badge: '8 Nodes',
+  },
+  {
+    name: 'Coastal Alerts',
+    path: '/alerts',
+    icon: AlertTriangle,
+    badge: 'Early Warning',
+  },
+  {
+    name: 'Coastal Locations',
+    path: '/locations',
+    icon: Radio,
+    badge: 'Telemetry',
+  },
+  {
+    name: 'Accuracy & Drift',
+    path: '/monitoring',
+    icon: TrendingUp,
+    badge: 'ML Ops',
   },
   {
     name: 'Historical Analysis',
@@ -44,10 +66,16 @@ const navItems = [
     badge: '19.4k Test',
   },
   {
-    name: 'About & Methodology',
+    name: 'Model Comparison',
+    path: '/comparison',
+    icon: BarChart3,
+    badge: 'Benchmark',
+  },
+  {
+    name: 'System & Docs',
     path: '/about',
     icon: Info,
-    badge: 'Docs',
+    badge: 'Status',
   },
 ]
 

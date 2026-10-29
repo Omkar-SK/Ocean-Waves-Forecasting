@@ -107,7 +107,7 @@ export function HistoricalAnalysisPage() {
     return () => window.removeEventListener('oceancast:refresh', handleRefresh)
   }, [loadData])
 
-  const exportUrl = api.getExportUrl(horizon, model)
+  const exportUrl = api.getExportUrl(horizon)
 
   // Prepare time-series chart data with formatted timestamps and model-specific predictions
   const timeSeriesData = React.useMemo(() => {

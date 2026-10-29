@@ -78,4 +78,9 @@ outputs/predictions/*.csv
 !outputs/predictions/.gitkeep
 !data/processed/.gitkeep
 !data/interim/.gitkeep
+!data/persistence/.gitkeep
 
+# Persistence & SQLite
+data/persistence/*.db
+data/persistence/*.db-journal
+data/persistence/*.db-wal

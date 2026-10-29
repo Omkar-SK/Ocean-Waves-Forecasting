@@ -17,7 +17,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from backend.config import ALLOWED_ORIGINS
-from backend.routers import forecast, health, historical, metrics
+from backend.routers import alerts, coastal, forecast, health, historical, metrics, monitoring
 from backend.services.model_service import model_service
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -79,6 +79,9 @@ app.include_router(health.router)
 app.include_router(metrics.router)
 app.include_router(forecast.router)
 app.include_router(historical.router)
+app.include_router(monitoring.router)
+app.include_router(alerts.router)
+app.include_router(coastal.router)
 
 
 @app.get("/", tags=["Root"])

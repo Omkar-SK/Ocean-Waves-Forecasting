@@ -17,11 +17,14 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   Tooltip,
   Cell,
   CartesianGrid,
+  Legend,
 } from 'recharts'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
@@ -29,16 +32,31 @@ import { Button } from '../components/ui/Button'
 import { Skeleton } from '../components/ui/Skeleton'
 import { api } from '../services/api'
 import { formatDateTime, formatMeters, getWmoSeaState } from '../lib/utils'
-import type { ForecastResponse, ForecastStatusResponse, Horizon, ModelName } from '../types'
+import type { CoastalNode, ForecastResponse, ForecastStatusResponse, Horizon, ModelName } from '../types'
 
 export function LiveForecastPage() {
   const [horizon, setHorizon] = useState<Horizon>(6)
   const [selectedModel, setSelectedModel] = useState<ModelName>('all')
   const [useDemoFallback, setUseDemoFallback] = useState<boolean>(false)
+  const [locations, setLocations] = useState<CoastalNode[]>([])
+  const [selectedLocationId, setSelectedLocationId] = useState<string>('mumbai')
   const [liveStatus, setLiveStatus] = useState<ForecastStatusResponse | null>(null)
   const [forecast, setForecast] = useState<ForecastResponse | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Load locations on mount
+  useEffect(() => {
+    async function loadLocations() {
+      try {
+        const nodes = await api.getCoastalLocations()
+        setLocations(nodes)
+      } catch (err) {
+        console.error('Failed to load coastal locations:', err)
+      }
+    }
+    loadLocations()
+  }, [])
 
   const fetchForecast = useCallback(async () => {
     setLoading(true)
@@ -47,7 +65,7 @@ export function LiveForecastPage() {
       const source = useDemoFallback ? 'demo' : 'live'
       const [statusRes, forecastRes] = await Promise.all([
         api.getLiveStatus(),
-        api.getLiveForecast(horizon, selectedModel, source),
+        api.getLiveForecast(horizon, selectedModel, source, selectedLocationId),
       ])
       setLiveStatus(statusRes)
       setForecast(forecastRes)
@@ -57,7 +75,7 @@ export function LiveForecastPage() {
     } finally {
       setLoading(false)
     }
-  }, [horizon, selectedModel, useDemoFallback])
+  }, [horizon, selectedModel, useDemoFallback, selectedLocationId])
 
   useEffect(() => {
     fetchForecast()
@@ -154,10 +172,63 @@ export function LiveForecastPage() {
     return items
   }, [forecast, lstmPred, annPred, cnnPred, nwpPred, persistPred])
 
+  const selectedNode = locations.find((n) => n.location_id === selectedLocationId) || locations[0]
+  const isExperimental = selectedNode ? !selectedNode.is_reference : false
+
+  const timeSeriesData = React.useMemo(() => {
+    if (!forecast?.observation_window) return []
+    const points = forecast.observation_window.map((step) => {
+      const d = new Date(step.valid_time)
+      const timeStr = `${d.getMonth() + 1}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:00`
+      return {
+        time: timeStr,
+        swh: step.swh,
+        mwp: step.mwp,
+        wind_speed: step.wind_speed,
+        isForecast: false,
+      }
+    })
+
+    if (forecast.target_time_utc) {
+      const d = new Date(forecast.target_time_utc)
+      const timeStr = `${d.getMonth() + 1}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:00`
+      points.push({
+        time: timeStr,
+        swh: primeSwh,
+        mwp: liveMwp,
+        wind_speed: liveWindSpeed,
+        isForecast: true,
+      })
+    }
+    return points
+  }, [forecast, primeSwh, liveMwp, liveWindSpeed])
+
   const isDemo = forecast?.is_demo ?? false
 
   return (
     <div className="space-y-6">
+      {/* Geographic Validation Warning for Experimental Nodes */}
+      {isExperimental && (
+        <div className="rounded-xl border border-[#F59E0B]/50 bg-[#F59E0B]/10 p-4 text-[#F1F5F9]">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-[#F59E0B] shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-sm text-[#F59E0B] font-['Outfit',sans-serif]">
+                  Geographic Validation Notice: Experimental Node ({selectedNode?.name})
+                </span>
+                <Badge variant="warning">Uncalibrated Node</Badge>
+              </div>
+              <p className="text-xs text-[#94A3B8] leading-relaxed">
+                Checkpoints were trained and verified exclusively on Mumbai Reference coordinates (18.50°N, 72.50°E).
+                Wave predictions at {selectedNode?.name} ({selectedNode?.coordinate_label}) are generated for architectural
+                evaluation and multi-location monitoring, but lack localized bathymetric calibration and waverider buoy ground truth.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Live Operational Status Banner */}
       {isDemo ? (
         <div className="rounded-xl border border-[#F59E0B]/40 bg-[#F59E0B]/10 p-4 text-[#F1F5F9]">
@@ -189,8 +260,8 @@ export function LiveForecastPage() {
                 <Badge variant="teal">Real-Time Open-Meteo ECMWF Feed</Badge>
               </div>
               <p className="text-xs text-[#94A3B8] leading-relaxed">
-                Ingested consecutive 24 hourly marine & atmospheric NWP states from Open-Meteo for offshore point{' '}
-                <strong>18.50°N, 72.50°E</strong> (0 gaps, 0 NaNs). Real-time inference executed across trained PyTorch
+                Ingested consecutive 24 hourly marine & atmospheric NWP states from Open-Meteo for{' '}
+                <strong>{selectedNode ? `${selectedNode.name} (${selectedNode.coordinate_label})` : '18.50°N, 72.50°E'}</strong> (0 gaps, 0 NaNs). Real-time inference executed across trained PyTorch
                 checkpoints for target lead time +{horizon}h.
               </p>
             </div>
@@ -198,7 +269,7 @@ export function LiveForecastPage() {
         </div>
       )}
 
-      {/* Control Panel: Model, Horizon, and Demo Toggle */}
+      {/* Control Panel: Location, Model, Horizon, and Demo Toggle */}
       <Card>
         <CardHeader className="pb-3 border-b border-[#1E3A5F]/60">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -208,7 +279,7 @@ export function LiveForecastPage() {
                 <span>Forecasting Parameters & Operational Controls</span>
               </CardTitle>
               <CardDescription>
-                Configure target projection horizon, neural network checkpoint, and input data mode
+                Configure coastal monitoring location, target projection horizon, neural network checkpoint, and input data mode
               </CardDescription>
             </div>
 
@@ -225,7 +296,29 @@ export function LiveForecastPage() {
           </div>
         </CardHeader>
         <CardContent className="pt-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Coastal Location Selector */}
+            <div>
+              <label className="text-xs font-semibold text-[#94A3B8] uppercase tracking-wider mb-2 block">
+                Coastal Location
+              </label>
+              <select
+                value={selectedLocationId}
+                onChange={(e) => setSelectedLocationId(e.target.value)}
+                className="w-full py-2 px-3 text-xs font-medium rounded-lg bg-[#07111F] border border-[#1E3A5F] text-[#F1F5F9] focus:outline-hidden focus:border-[#35C6E8]"
+              >
+                {locations.length > 0 ? (
+                  locations.map((loc) => (
+                    <option key={loc.location_id} value={loc.location_id}>
+                      {loc.name} {loc.is_reference ? '★ (Reference)' : '(Experimental)'}
+                    </option>
+                  ))
+                ) : (
+                  <option value="mumbai">Mumbai Offshore Grid (18.5°N, 72.5°E) ★</option>
+                )}
+              </select>
+            </div>
+
             {/* Horizon Selector */}
             <div>
               <label className="text-xs font-semibold text-[#94A3B8] uppercase tracking-wider mb-2 block">
@@ -415,6 +508,60 @@ export function LiveForecastPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 24h Sequence & Forecast Time Series Visualization */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-4 w-4 text-[#35C6E8]" />
+                <span>Live Sequence & Future Horizon Trajectory</span>
+              </CardTitle>
+              <CardDescription>
+                24 consecutive hourly observations at {selectedNode?.name ?? 'Mumbai'} leading to cutoff t₀ and deep learning projection (+{horizon}h)
+              </CardDescription>
+            </div>
+            <Badge variant="cyan" className="font-mono text-[10px]">
+              {timeSeriesData.length} Timesteps
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="h-64 flex items-center justify-center">
+              <Skeleton className="h-56 w-full" />
+            </div>
+          ) : (
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={timeSeriesData} margin={{ top: 10, right: 20, left: -10, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#16263A" />
+                  <XAxis dataKey="time" stroke="#94A3B8" fontSize={10} tickLine={false} interval="preserveStartEnd" angle={-20} textAnchor="end" />
+                  <YAxis stroke="#94A3B8" fontSize={11} domain={['dataMin - 0.1', 'dataMax + 0.1']} unit=" m" tickLine={false} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#101D2D',
+                      borderColor: '#1E3A5F',
+                      borderRadius: '8px',
+                      color: '#F1F5F9',
+                    }}
+                    formatter={(val: any) => [formatMeters(typeof val === 'number' ? val : null), 'Hs']}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="swh"
+                    name="Significant Wave Height"
+                    stroke="#35C6E8"
+                    strokeWidth={2}
+                    dot={{ r: 3, fill: '#35C6E8' }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Timestamp Audit Trail & Data Freshness Details */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

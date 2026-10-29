@@ -14,6 +14,22 @@ const pageTitles: Record<string, { title: string; subtitle: string }> = {
     title: 'Live Operational Forecasting',
     subtitle: 'Near-real-time Arabian Sea wave height predictions vs Open-Meteo ECMWF NWP',
   },
+  '/map': {
+    title: 'Interactive Coastal Risk Heatmap',
+    subtitle: 'Candidate coastal nodes, dynamic risk thresholds, and localized multi-horizon hazards',
+  },
+  '/alerts': {
+    title: 'Coastal Early-Warning Alert Centre',
+    subtitle: 'Active hazard alerts, operator acknowledgement, and lifecycle persistence',
+  },
+  '/locations': {
+    title: 'Coastal Node Registry & Telemetry Feeds',
+    subtitle: 'Status and data freshness across 8 registered Arabian Sea candidate stations',
+  },
+  '/monitoring': {
+    title: 'Forecast Accuracy & Model Drift Monitoring',
+    subtitle: 'Prospective ledger, verified metrics, canonical feature drift (PSI), and degradation tracking',
+  },
   '/comparison': {
     title: 'Model Benchmarking & Skill Analysis',
     subtitle: 'Rigorous comparative evaluation across 1h, 6h, and 24h horizons vs Persistence',
@@ -24,7 +40,7 @@ const pageTitles: Record<string, { title: string; subtitle: string }> = {
   },
   '/about': {
     title: 'About OceanCast & Methodology',
-    subtitle: 'Deep learning pipeline, ERA5 reanalysis provenance, and academic design',
+    subtitle: 'Deep learning pipeline, ERA5 reanalysis provenance, and system operational limits',
   },
 }
 

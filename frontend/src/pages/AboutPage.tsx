@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   BookOpen,
   Compass,
@@ -13,11 +13,45 @@ import {
   CheckCircle2,
   AlertTriangle,
   Scale,
+  Activity,
+  Server,
+  Radio,
+  Wifi,
+  WifiOff,
 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
+import { Skeleton } from '../components/ui/Skeleton'
+import { api } from '../services/api'
+import type { HealthResponse, MetadataResponse, ForecastStatusResponse } from '../types'
 
 export function AboutPage() {
+  const [health, setHealth] = useState<HealthResponse | null>(null)
+  const [metadata, setMetadata] = useState<MetadataResponse | null>(null)
+  const [forecastStatus, setForecastStatus] = useState<ForecastStatusResponse | null>(null)
+  const [loading, setLoading] = useState<boolean>(true)
+
+  useEffect(() => {
+    async function loadStatus() {
+      setLoading(true)
+      try {
+        const [h, m, f] = await Promise.all([
+          api.getHealth(),
+          api.getMetadata(),
+          api.getLiveStatus(),
+        ])
+        setHealth(h)
+        setMetadata(m)
+        setForecastStatus(f)
+      } catch (err) {
+        console.error('Failed to load system status:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadStatus()
+  }, [])
+
   const featureList = [
     { name: 'swh', desc: 'Significant wave height (m) — target & primary input', category: 'Ocean Waves' },
     { name: 'mwp', desc: 'Mean wave period (s)', category: 'Ocean Waves' },
@@ -231,6 +265,94 @@ export function AboutPage() {
           </Card>
         </div>
       </div>
+
+      {/* System Status & Data Feed Telemetry */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Server className="h-4 w-4 text-[#35D0B0]" />
+                <span>System Status & Service Health</span>
+              </CardTitle>
+              <CardDescription>
+                Real-time operational status of backend services, PyTorch checkpoints, and data ingestion feeds
+              </CardDescription>
+            </div>
+            <Badge variant={health?.backend_online ? 'teal' : 'destructive'}>
+              {health?.backend_online ? 'Backend Connected' : 'Disconnected'}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-3.5 rounded-xl bg-[#16263A] border border-[#1E3A5F]">
+              <div className="flex items-center justify-between text-xs text-[#94A3B8] mb-1">
+                <span>FastAPI Service</span>
+                <Server className="h-3.5 w-3.5 text-[#35C6E8]" />
+              </div>
+              <div className="font-mono text-sm font-bold text-[#F1F5F9]">
+                {health?.backend_online ? 'Healthy (Port 8000)' : 'Unhealthy'}
+              </div>
+              <p className="text-[10px] text-[#35D0B0] mt-1">Uvicorn ASGI Runtime</p>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-[#16263A] border border-[#1E3A5F]">
+              <div className="flex items-center justify-between text-xs text-[#94A3B8] mb-1">
+                <span>Open-Meteo NWP Feed</span>
+                {forecastStatus?.live_api_online ? (
+                  <Wifi className="h-3.5 w-3.5 text-[#35D0B0]" />
+                ) : (
+                  <WifiOff className="h-3.5 w-3.5 text-[#F59E0B]" />
+                )}
+              </div>
+              <div className="font-mono text-sm font-bold text-[#F1F5F9]">
+                {forecastStatus?.live_api_online ? 'Live Connected' : 'Demo Fallback'}
+              </div>
+              <p className="text-[10px] text-[#94A3B8] mt-1">ECMWF Atmospheric Ingestion</p>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-[#16263A] border border-[#1E3A5F]">
+              <div className="flex items-center justify-between text-xs text-[#94A3B8] mb-1">
+                <span>PyTorch Checkpoints</span>
+                <Cpu className="h-3.5 w-3.5 text-[#F59E0B]" />
+              </div>
+              <div className="font-mono text-sm font-bold text-[#F1F5F9]">
+                {health?.checkpoints_available ?? 9} / 9 Loaded
+              </div>
+              <p className="text-[10px] text-[#35D0B0] mt-1">ANN • LSTM • 1D-CNN</p>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-[#16263A] border border-[#1E3A5F]">
+              <div className="flex items-center justify-between text-xs text-[#94A3B8] mb-1">
+                <span>Live Buoy Telemetry</span>
+                <Radio className="h-3.5 w-3.5 text-[#94A3B8]" />
+              </div>
+              <div className="font-mono text-sm font-bold text-[#94A3B8]">
+                Not Configured
+              </div>
+              <p className="text-[10px] text-[#94A3B8] mt-1">INCOIS Feed Unconfigured</p>
+            </div>
+          </div>
+
+          {/* Component Health Items */}
+          {health?.components && health.components.length > 0 && (
+            <div className="pt-2 border-t border-[#1E3A5F]/60">
+              <span className="text-xs font-semibold text-[#94A3B8] block mb-2">Subsystem Component Status</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {health.components.map((comp, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-[#07111F] border border-[#1E3A5F] text-xs">
+                    <span className="text-[#F1F5F9] font-medium">{comp.name}</span>
+                    <Badge variant={comp.status === 'healthy' ? 'teal' : comp.status === 'degraded' ? 'warning' : 'destructive'} className="text-[10px]">
+                      {comp.status}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Critical Scientific Disclaimer */}
       <Card className="border-l-4 border-l-[#F59E0B]">

@@ -135,3 +135,44 @@ def test_historical_residuals():
     bins = resp.json()
     assert len(bins) == 15
     assert sum(b["count"] for b in bins) == 19455
+
+
+def test_alerts_endpoints():
+    resp = client.get("/api/alerts/summary")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "total_active" in data
+    assert "critical_red" in data
+
+    resp_list = client.get("/api/alerts?status=ALL")
+    assert resp_list.status_code == 200
+    assert isinstance(resp_list.json(), list)
+
+    resp_thresh = client.get("/api/alerts/thresholds")
+    assert resp_thresh.status_code == 200
+    t_data = resp_thresh.json()
+    assert t_data["caution_m"] == 1.50
+    assert t_data["high_risk_m"] == 2.50
+    assert t_data["critical_m"] == 4.00
+
+
+def test_coastal_endpoints():
+    resp = client.get("/api/coastal/map-data?horizon=6&source=demo")
+    assert resp.status_code == 200
+    nodes = resp.json()
+    assert len(nodes) == 8
+    mumbai = next(n for n in nodes if n["location_id"] == "mumbai_offshore")
+    assert mumbai["is_reference"] is True
+    assert mumbai["latitude"] == 18.50
+    assert mumbai["longitude"] == 72.50
+
+    resp_m = client.get("/api/coastal/metrics?horizon=6&source=demo")
+    assert resp_m.status_code == 200
+    m_data = resp_m.json()
+    assert m_data["total_nodes"] == 8
+    assert m_data["reference_nodes"] == 1
+
+    resp_t = client.get("/api/coastal/thresholds")
+    assert resp_t.status_code == 200
+    assert resp_t.json()["caution_m"] == 1.50
+

@@ -2,6 +2,7 @@
 Configuration and constants for OceanCast AI FastAPI Backend.
 """
 
+import os
 from pathlib import Path
 from typing import List
 
@@ -57,12 +58,12 @@ VARIABLE_UNITS = {
 }
 
 # CORS
-ALLOWED_ORIGINS = [
+_env_cors = os.getenv("CORS_ORIGINS", "")
+ALLOWED_ORIGINS = [origin.strip() for origin in _env_cors.split(",") if origin.strip()] if _env_cors else [
     "http://localhost:5173",
     "http://localhost:5174",
     "http://localhost:3000",
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174",
     "http://127.0.0.1:3000",
-    "*",  # Allow local dev flexibly
 ]

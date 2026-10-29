@@ -2,14 +2,26 @@
 Operational live forecast and inference endpoints.
 """
 
-from typing import Optional
+from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Query
 
 from backend.config import SUPPORTED_HORIZONS
-from backend.schemas.forecast import ForecastRequest, ForecastResponse, ForecastStatusResponse
+from backend.schemas.forecast import (
+    CoastalNodeSchema,
+    ForecastRequest,
+    ForecastResponse,
+    ForecastStatusResponse,
+)
 from backend.services.live_service import live_forecast_service
+from src.intelligence.nodes import get_coastal_registry
 
 router = APIRouter(prefix="/api/forecast", tags=["Forecasting"])
+
+
+@router.get("/locations", response_model=List[CoastalNodeSchema])
+def list_coastal_locations():
+    """List all registered coastal forecasting locations with validation status."""
+    return get_coastal_registry().to_dict_list(enabled_only=False)
 
 
 @router.get("/status", response_model=ForecastStatusResponse)
@@ -42,6 +54,7 @@ def get_live_forecast_convenience(
     model: Optional[str] = Query(None, description="'ann', 'lstm', 'cnn1d', or 'all'"),
     model_name: Optional[str] = Query(None, description="Alias for model"),
     source: Optional[str] = Query("live", description="'live' or 'demo'"),
+    location_id: Optional[str] = Query(None, description="Registered coastal node ID"),
     use_demo_fallback: Optional[bool] = Query(None, description="Fallback flag"),
 ):
     """Convenience GET endpoint for live forecast fetching."""
@@ -53,11 +66,22 @@ def get_live_forecast_convenience(
 
     selected_source = "demo" if source == "demo" else "live"
     try:
-        req = ForecastRequest(horizon=horizon, model=selected_model, source=selected_source)
+        req = ForecastRequest(
+            horizon=horizon,
+            model=selected_model,
+            source=selected_source,
+            location_id=location_id,
+        )
         return generate_forecast(req)
     except ConnectionError:
         if use_demo_fallback or selected_source == "live":
             # Fall back to demo mode gracefully if network drops
-            req = ForecastRequest(horizon=horizon, model=selected_model, source="demo")
+            req = ForecastRequest(
+                horizon=horizon,
+                model=selected_model,
+                source="demo",
+                location_id=location_id,
+            )
             return generate_forecast(req)
         raise
+
