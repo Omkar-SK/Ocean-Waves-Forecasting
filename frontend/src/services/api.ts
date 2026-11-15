@@ -23,6 +23,9 @@ import type {
   ResidualDataResponse,
   ScatterDataResponse,
   ThresholdConfigResponse,
+  ScenarioMetadataItem,
+  SimulationStatusResponse,
+  SimulationResultsResponse,
 } from '../types'
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? '/api'
@@ -216,4 +219,19 @@ export const api = {
   getExportUrl: (horizon: Horizon) => {
     return `${BASE_URL}/historical/export?horizon=${horizon}`
   },
+
+  // 9. Hazard Simulation Mode
+  getSimulationScenarios: () => request<ScenarioMetadataItem[]>('/simulation/scenarios'),
+  startSimulation: (scenarioId: string, initialStep: number = 6) =>
+    request<SimulationResultsResponse>('/simulation/start', {
+      method: 'POST',
+      body: JSON.stringify({ scenario_id: scenarioId, initial_step: initialStep }),
+    }),
+  pauseSimulation: () => request<SimulationStatusResponse>('/simulation/pause', { method: 'POST' }),
+  resumeSimulation: () => request<SimulationStatusResponse>('/simulation/resume', { method: 'POST' }),
+  stepSimulation: (delta: number = 1) =>
+    request<SimulationResultsResponse>(`/simulation/step?delta=${delta}`, { method: 'POST' }),
+  resetSimulation: () => request<SimulationStatusResponse>('/simulation/reset', { method: 'POST' }),
+  getSimulationStatus: () => request<SimulationStatusResponse>('/simulation/status'),
+  getSimulationResults: () => request<SimulationResultsResponse>('/simulation/results'),
 }

@@ -425,3 +425,90 @@ export interface ResidualDataResponse {
   std_error?: number
   bins?: ResidualBin[]
 }
+
+// ----------------------------------------------------------------------------
+// Hazard Simulation Mode
+// ----------------------------------------------------------------------------
+export interface ScenarioMetadataItem {
+  scenario_id: string
+  name: string
+  category: string
+  headline: string
+  description: string
+  severity_category: string
+  coastal_impact_level: string
+  recommended_action: string
+  base_swh_m: number
+  peak_swh_m: number
+  peak_wind_kmh: number
+  peak_mwp_s: number
+}
+
+export interface SimulationStatusResponse {
+  is_active: boolean
+  state: 'IDLE' | 'RUNNING' | 'PAUSED'
+  scenario_id?: string | null
+  scenario_name?: string | null
+  current_step: number
+  total_steps: number
+  elapsed_hours: number
+  started_at_utc?: string | null
+  updated_at_utc?: string | null
+  disclaimer: string
+}
+
+export interface HeatmapPoint {
+  latitude: number
+  longitude: number
+  label: string
+  region: string
+  swh_m: number
+  max_wave_m: number
+  mwp_s: number
+  wind_kmh: number
+  wind_dir_deg: number
+  intensity: number
+  risk_level: string
+  color: string
+  radius_km: number
+}
+
+export interface SimulationStats {
+  active_alerts: number
+  critical_risk_zones: number
+  high_risk_zones: number
+  max_swh_m: number
+  max_wind_kmh: number
+  coastal_risk_index: number
+  affected_regions: string[]
+  scenario_name: string
+  severity_category: string
+  headline: string
+  coastal_impact_level: string
+  recommended_action: string
+}
+
+export interface SimulatedTimeSeriesPoint {
+  step: number
+  time: string
+  timestamp: string
+  actual?: number | null
+  lstm?: number | null
+  ann?: number | null
+  cnn1d?: number | null
+  persistence?: number | null
+  wind_kmh: number
+  mwp_s: number
+  risk_level: string
+  isForecast: boolean
+}
+
+export interface SimulationResultsResponse {
+  status: SimulationStatusResponse
+  scenario?: ScenarioMetadataItem | null
+  stats?: SimulationStats | null
+  nodes: NodeMapSummaryItem[]
+  heatmap_points: HeatmapPoint[]
+  alerts: AlertItem[]
+  time_series: SimulatedTimeSeriesPoint[]
+}

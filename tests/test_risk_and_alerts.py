@@ -344,8 +344,8 @@ def test_alert_fingerprint_determinism():
 def test_alert_duplicate_suppression_on_repeated_assessment(temp_alert_store):
     """Verify that repeated evaluation of the same forecast does NOT create duplicate alerts."""
     engine = AlertEngine(store=temp_alert_store)
-    event_time = datetime(2026, 10, 27, 18, 0, 0, tzinfo=timezone.utc)
     now_utc = datetime.now(timezone.utc)
+    event_time = now_utc + timedelta(hours=6)
 
     assessment = RiskAssessment(
         location_id="mumbai_offshore",
@@ -390,8 +390,8 @@ def test_alert_duplicate_suppression_on_repeated_assessment(temp_alert_store):
 def test_alert_severity_escalation(temp_alert_store):
     """Verify escalation from YELLOW to ORANGE updates alert severity and logs history."""
     engine = AlertEngine(store=temp_alert_store)
-    event_time = datetime(2026, 10, 27, 18, 0, 0, tzinfo=timezone.utc)
     now_utc = datetime.now(timezone.utc)
+    event_time = now_utc + timedelta(hours=6)
 
     # 1. Trigger Caution alert (YELLOW, 1.70m)
     a1 = RiskAssessment(
@@ -455,8 +455,8 @@ def test_alert_severity_escalation(temp_alert_store):
 def test_alert_user_acknowledgement(temp_alert_store):
     """Verify operator acknowledgement transitions ACTIVE -> ACKNOWLEDGED."""
     engine = AlertEngine(store=temp_alert_store)
-    event_time = datetime(2026, 10, 27, 18, 0, 0, tzinfo=timezone.utc)
     now_utc = datetime.now(timezone.utc)
+    event_time = now_utc + timedelta(hours=6)
 
     assessment = RiskAssessment(
         location_id="mumbai_offshore",
@@ -499,8 +499,8 @@ def test_alert_user_acknowledgement(temp_alert_store):
 def test_alert_hysteresis_resolution(temp_alert_store):
     """Verify alert resolution requires dropping below threshold minus hysteresis buffer."""
     engine = AlertEngine(store=temp_alert_store)
-    event_time = datetime(2026, 10, 27, 18, 0, 0, tzinfo=timezone.utc)
     now_utc = datetime.now(timezone.utc)
+    event_time = now_utc + timedelta(hours=6)
     thresholds = RiskThresholdSet(caution_m=1.50, hysteresis_buffer_m=0.15)
     # De-escalation target is: 1.50 - 0.15 = 1.35m
 
@@ -592,8 +592,8 @@ def test_alert_hysteresis_resolution(temp_alert_store):
 def test_api_failure_preserves_active_alert(temp_alert_store):
     """Verify that an API network failure does NOT prematurely resolve an active alert."""
     engine = AlertEngine(store=temp_alert_store)
-    event_time = datetime(2026, 10, 27, 18, 0, 0, tzinfo=timezone.utc)
     now_utc = datetime.now(timezone.utc)
+    event_time = now_utc + timedelta(hours=6)
 
     # 1. Active alert exists
     assessment = RiskAssessment(
@@ -657,8 +657,8 @@ def test_sqlite_persistence_across_restarts(temp_db_path):
     """Verify that alerts and transition history survive simulated service restarts."""
     store1 = AlertStore(db_path=temp_db_path)
     engine1 = AlertEngine(store=store1)
-    event_time = datetime(2026, 10, 27, 18, 0, 0, tzinfo=timezone.utc)
     now_utc = datetime.now(timezone.utc)
+    event_time = now_utc + timedelta(hours=6)
 
     assessment = RiskAssessment(
         location_id="mumbai_offshore",

@@ -42,6 +42,7 @@ vi.mock('leaflet', () => {
       }),
       tileLayer: vi.fn().mockReturnValue(mockLayer),
       layerGroup: vi.fn().mockReturnValue(mockLayer),
+      circle: vi.fn().mockReturnValue(mockLayer),
       circleMarker: vi.fn().mockReturnValue(mockLayer),
     },
     map: vi.fn().mockReturnValue({
@@ -51,6 +52,7 @@ vi.mock('leaflet', () => {
     }),
     tileLayer: vi.fn().mockReturnValue(mockLayer),
     layerGroup: vi.fn().mockReturnValue(mockLayer),
+    circle: vi.fn().mockReturnValue(mockLayer),
     circleMarker: vi.fn().mockReturnValue(mockLayer),
   }
 })

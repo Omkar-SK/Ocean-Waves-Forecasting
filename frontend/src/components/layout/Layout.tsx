@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
+import { SimulationControlBar } from '../simulation/SimulationControlBar'
+import { SimulationModal } from '../simulation/SimulationModal'
 import { api } from '../../services/api'
 import type { HealthResponse } from '../../types'
 
@@ -9,6 +11,10 @@ const pageTitles: Record<string, { title: string; subtitle: string }> = {
   '/': {
     title: 'Mission Overview & Forecast Hub',
     subtitle: 'Real-time telemetry, model readiness, and primary forecast projection',
+  },
+  '/simulation': {
+    title: 'Ocean Hazard Simulation Laboratory',
+    subtitle: 'Interactive 3D hydrodynamic dynamics, scenario stress-testing, and real-time hazard progression',
   },
   '/live': {
     title: 'Live Operational Forecasting',
@@ -102,9 +108,13 @@ export function Layout() {
           isRefreshing={isRefreshing}
         />
 
+        <SimulationControlBar />
+
         <main className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8 animate-ocean-fade">
           <Outlet />
         </main>
+
+        <SimulationModal />
       </div>
     </div>
   )

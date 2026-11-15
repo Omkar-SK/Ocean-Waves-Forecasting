@@ -14,8 +14,12 @@ import {
   AlertCircle,
   ExternalLink,
   Waves,
+  Flame,
+  FlaskConical,
 } from 'lucide-react'
 import { api } from '../services/api'
+import { useSimulation } from '../context/SimulationContext'
+import { HazardHeatmapLegend } from '../components/simulation/HazardHeatmapLegend'
 import type { Horizon, NodeMapSummaryItem, RiskLevel, ThresholdConfigResponse } from '../types'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
@@ -23,10 +27,13 @@ import { Badge } from '../components/ui/Badge'
 import { StatusIndicator } from '../components/ui/StatusIndicator'
 
 export function CoastalRiskMapPage() {
+  const { isSimulationActive, activeScenario, simulationData, openModal } = useSimulation()
+
   const [horizon, setHorizon] = useState<Horizon>(6)
   const [source, setSource] = useState<'demo' | 'live'>('demo')
   const [selectedRiskFilter, setSelectedRiskFilter] = useState<string>('ALL')
   const [alertsOnly, setAlertsOnly] = useState<boolean>(false)
+  const [showHeatmap, setShowHeatmap] = useState<boolean>(true)
 
   const [nodes, setNodes] = useState<NodeMapSummaryItem[]>([])
   const [thresholds, setThresholds] = useState<ThresholdConfigResponse | null>(null)
@@ -38,8 +45,15 @@ export function CoastalRiskMapPage() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
   const markersGroupRef = useRef<L.LayerGroup | null>(null)
+  const heatmapGroupRef = useRef<L.LayerGroup | null>(null)
 
   const fetchData = async (forceRefresh: boolean = false) => {
+    if (isSimulationActive && simulationData?.nodes) {
+      setNodes(simulationData.nodes)
+      setLoading(false)
+      setIsRefreshing(false)
+      return
+    }
     try {
       if (forceRefresh) setIsRefreshing(true)
       else setLoading(true)
@@ -66,6 +80,14 @@ export function CoastalRiskMapPage() {
   }
 
   useEffect(() => {
+    if (isSimulationActive && simulationData?.nodes) {
+      setNodes(simulationData.nodes)
+    } else if (!isSimulationActive) {
+      fetchData()
+    }
+  }, [isSimulationActive, simulationData])
+
+  useEffect(() => {
     fetchData()
   }, [horizon, source])
 
@@ -85,7 +107,7 @@ export function CoastalRiskMapPage() {
     return nodes.find((n) => n.location_id === selectedNodeId) || nodes[0] || null
   }, [nodes, selectedNodeId])
 
-  // Initialize Leaflet Map once with Carto Voyager (Balanced Light Maritime Cartography)
+  // Initialize Leaflet Map once with clean keyless tiles or optional CARTO key
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return
 
@@ -97,21 +119,90 @@ export function CoastalRiskMapPage() {
       zoomControl: true,
     })
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap contributors',
+    const cartoKey = import.meta.env.VITE_CARTO_API_KEY
+    const tileUrl = cartoKey
+      ? `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${cartoKey}`
+      : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+
+    const attribution = cartoKey
+      ? '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+
+    L.tileLayer(tileUrl, {
+      attribution,
       maxZoom: 19,
     }).addTo(map)
 
+    const heatmapGroup = L.layerGroup().addTo(map)
     const markersGroup = L.layerGroup().addTo(map)
     mapInstanceRef.current = map
     markersGroupRef.current = markersGroup
+    heatmapGroupRef.current = heatmapGroup
 
     return () => {
       map.remove()
       mapInstanceRef.current = null
       markersGroupRef.current = null
+      heatmapGroupRef.current = null
     }
   }, [])
+
+  // Update Simulated Heatmap Layer
+  useEffect(() => {
+    if (!mapInstanceRef.current || !heatmapGroupRef.current) return
+
+    heatmapGroupRef.current.clearLayers()
+
+    if (isSimulationActive && showHeatmap && simulationData?.heatmap_points) {
+      simulationData.heatmap_points.forEach((pt) => {
+        // Outer broad plume (gradient halo)
+        const outerCircle = L.circle([pt.latitude, pt.longitude], {
+          radius: pt.radius_km * 1000,
+          color: pt.color,
+          fillColor: pt.color,
+          fillOpacity: Math.min(0.25, pt.intensity * 0.32),
+          weight: 1,
+        })
+
+        // Inner core marker
+        const innerCore = L.circleMarker([pt.latitude, pt.longitude], {
+          radius: Math.max(5, Math.min(16, pt.intensity * 18)),
+          color: '#FFFFFF',
+          fillColor: pt.color,
+          fillOpacity: 0.85,
+          weight: 1.5,
+        })
+
+        const popupContent = `
+          <div style="font-family: sans-serif; background: #FFFFFF; color: #192B3C; min-width: 175px; padding: 6px; border-radius: 6px; border: 1px solid #DCE5EF;">
+            <div style="font-weight: 700; font-size: 13px; color: #15304B; margin-bottom: 2px;">${pt.label}</div>
+            <div style="font-size: 11px; color: #64758A; margin-bottom: 6px;">${pt.region} • Simulated Hazard</div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px;">
+              <span style="color: #64758A;">Simulated Hs:</span>
+              <span style="font-weight: 700; color: ${pt.color}; font-family: monospace;">${pt.swh_m.toFixed(2)} m</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px;">
+              <span style="color: #64758A;">Peak Period:</span>
+              <span style="font-weight: 600; font-family: monospace;">${pt.mwp_s.toFixed(1)} s</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px;">
+              <span style="color: #64758A;">Wind Gusts:</span>
+              <span style="font-weight: 600; font-family: monospace;">${pt.wind_kmh.toFixed(1)} km/h</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px;">
+              <span style="color: #64758A;">Risk Level:</span>
+              <span style="font-weight: 700; color: ${pt.color};">${pt.risk_level}</span>
+            </div>
+          </div>
+        `
+        innerCore.bindPopup(popupContent)
+        outerCircle.bindPopup(popupContent)
+
+        heatmapGroupRef.current?.addLayer(outerCircle)
+        heatmapGroupRef.current?.addLayer(innerCore)
+      })
+    }
+  }, [isSimulationActive, showHeatmap, simulationData])
 
   // Update Leaflet Markers when nodes change
   useEffect(() => {
@@ -297,17 +388,26 @@ export function CoastalRiskMapPage() {
           </select>
         </div>
 
-        {/* Alerts Only Toggle */}
-        <div className="flex flex-col justify-end">
-          <label className="flex items-center gap-2 cursor-pointer bg-[#F0F6FC] p-2 rounded-lg border border-[#DCE5EF] text-xs text-[#15304B]">
+        {/* Alerts Only Toggle & Simulation Trigger */}
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 cursor-pointer bg-[#F0F6FC] p-2 rounded-lg border border-[#DCE5EF] text-xs text-[#15304B] flex-1">
             <input
               type="checkbox"
               checked={alertsOnly}
               onChange={(e) => setAlertsOnly(e.target.checked)}
               className="h-4 w-4 rounded border-[#DCE5EF] accent-[#20AFA7] focus:ring-0 bg-white"
             />
-            <span className="font-semibold text-[11px]">Active Alerts Only</span>
+            <span className="font-semibold text-[11px] whitespace-nowrap">Active Alerts Only</span>
           </label>
+
+          <Button
+            size="sm"
+            onClick={openModal}
+            className="bg-linear-to-r from-[#245B8F] to-[#1D4A75] hover:from-[#1D4A75] text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 shadow-2xs whitespace-nowrap"
+          >
+            <FlaskConical className="h-3.5 w-3.5" />
+            <span>{isSimulationActive ? 'Scenario' : 'Simulate'}</span>
+          </Button>
         </div>
       </div>
 
@@ -315,6 +415,11 @@ export function CoastalRiskMapPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Leaflet Interactive Map Container (8 Cols) */}
         <div className="lg:col-span-8 ocean-panel bg-white rounded-2xl overflow-hidden border border-[#DCE5EF] shadow-xs relative">
+          <HazardHeatmapLegend
+            showHeatmap={showHeatmap}
+            onToggleHeatmap={() => setShowHeatmap(!showHeatmap)}
+          />
+
           <div
             ref={mapContainerRef}
             className="h-[560px] w-full z-10"

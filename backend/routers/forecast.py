@@ -72,8 +72,8 @@ def get_live_forecast_convenience(
             source=selected_source,
             location_id=location_id,
         )
-        return generate_forecast(req)
-    except ConnectionError:
+        return live_forecast_service.generate_forecast(req)
+    except ConnectionError as ce:
         if use_demo_fallback or selected_source == "live":
             # Fall back to demo mode gracefully if network drops
             req = ForecastRequest(
@@ -82,6 +82,19 @@ def get_live_forecast_convenience(
                 source="demo",
                 location_id=location_id,
             )
-            return generate_forecast(req)
-        raise
+            fallback_res = live_forecast_service.generate_forecast(req)
+            fallback_res.notes.append(
+                f"⚠️ Live observation service unavailable ({ce}). Automatically fell back to offline ERA5 historical demo mode."
+            )
+            return fallback_res
+        raise HTTPException(
+            status_code=503,
+            detail=f"Live observation service unavailable: {ce}. Try switching to demo mode.",
+        )
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except FileNotFoundError as fe:
+        raise HTTPException(status_code=404, detail=str(fe))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Forecast inference error: {str(e)}")
 

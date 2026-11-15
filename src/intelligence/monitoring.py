@@ -43,6 +43,20 @@ DEFAULT_DB_PATH = PROJECT_ROOT / "data" / "persistence" / "ocean_intelligence.db
 DEFAULT_REF_STATS_PATH = PROJECT_ROOT / "outputs" / "reports" / "feature_reference_distribution.json"
 
 
+def _parse_iso_utc(val: Any) -> datetime:
+    """Safely parse ISO datetime string into UTC-aware datetime object."""
+    if isinstance(val, datetime):
+        d = val
+    else:
+        s = str(val).strip()
+        if s.endswith("Z"):
+            s = s[:-1] + "+00:00"
+        d = datetime.fromisoformat(s)
+    if d.tzinfo is None:
+        return d.replace(tzinfo=timezone.utc)
+    return d.astimezone(timezone.utc)
+
+
 # -----------------------------------------------------------------------------
 # Enums
 # -----------------------------------------------------------------------------
@@ -647,9 +661,9 @@ class MonitoringStore:
                         location_id=row["location_id"],
                         latitude=row["latitude"],
                         longitude=row["longitude"],
-                        issue_time_utc=datetime.fromisoformat(row["issue_time_utc"]),
-                        anchor_time_utc=datetime.fromisoformat(row["anchor_time_utc"]),
-                        target_time_utc=datetime.fromisoformat(row["target_time_utc"]),
+                        issue_time_utc=_parse_iso_utc(row["issue_time_utc"]),
+                        anchor_time_utc=_parse_iso_utc(row["anchor_time_utc"]),
+                        target_time_utc=_parse_iso_utc(row["target_time_utc"]),
                         horizon_hours=row["horizon_hours"],
                         predicted_swh_m=row["predicted_swh_m"],
                         units=row["units"],
@@ -662,7 +676,7 @@ class MonitoringStore:
                         is_reference=bool(row["is_reference"]),
                         persistence_swh_m=row["persistence_swh_m"],
                         external_nwp_swh_m=row["external_nwp_swh_m"],
-                        created_at_utc=datetime.fromisoformat(row["created_at_utc"]),
+                        created_at_utc=_parse_iso_utc(row["created_at_utc"]),
                     )
                 )
         return records
@@ -752,13 +766,13 @@ class MonitoringStore:
                         station_id=row["station_id"],
                         latitude=row["latitude"],
                         longitude=row["longitude"],
-                        observation_time_utc=datetime.fromisoformat(row["observation_time_utc"]),
+                        observation_time_utc=_parse_iso_utc(row["observation_time_utc"]),
                         observed_swh_m=row["observed_swh_m"],
                         units=row["units"],
                         source_name=row["source_name"],
                         source_type=ObservationSourceType(row["source_type"]),
                         quality_status=ObservationQuality(row["quality_status"]),
-                        ingestion_time_utc=datetime.fromisoformat(row["ingestion_time_utc"]),
+                        ingestion_time_utc=_parse_iso_utc(row["ingestion_time_utc"]),
                         notes=row["notes"],
                     )
                 )
@@ -845,9 +859,9 @@ class MonitoringStore:
                 if f_id in matched_forecast_ids:
                     continue
 
-                f_target = datetime.fromisoformat(row["target_time_utc"])
-                o_time = datetime.fromisoformat(row["observation_time_utc"])
-                f_issue = datetime.fromisoformat(row["issue_time_utc"])
+                f_target = _parse_iso_utc(row["target_time_utc"])
+                o_time = _parse_iso_utc(row["observation_time_utc"])
+                f_issue = _parse_iso_utc(row["issue_time_utc"])
 
                 # Check temporal tolerance
                 diff_sec = abs((f_target - o_time).total_seconds())
@@ -985,8 +999,8 @@ class MonitoringStore:
                         threshold_value=row["threshold_value"],
                         summary=row["summary"],
                         details_json=row["details_json"],
-                        created_at_utc=datetime.fromisoformat(row["created_at_utc"]),
-                        resolved_at_utc=datetime.fromisoformat(row["resolved_at_utc"]) if row["resolved_at_utc"] else None,
+                        created_at_utc=_parse_iso_utc(row["created_at_utc"]),
+                        resolved_at_utc=_parse_iso_utc(row["resolved_at_utc"]) if row["resolved_at_utc"] else None,
                     )
                 )
         return records

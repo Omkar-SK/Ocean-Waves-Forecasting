@@ -14,8 +14,12 @@ import {
   ChevronUp,
   Radio,
   FileText,
+  Flame,
+  FlaskConical,
+  RotateCcw,
 } from 'lucide-react'
 import { api } from '../services/api'
+import { useSimulation } from '../context/SimulationContext'
 import type { AlertHistoryItem, AlertItem, AlertSummaryResponse, ThresholdConfigResponse } from '../types'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
@@ -23,6 +27,8 @@ import { Badge } from '../components/ui/Badge'
 import { StatusIndicator } from '../components/ui/StatusIndicator'
 
 export function AlertsPage() {
+  const { isSimulationActive, activeScenario, simulationData, openModal, reset } = useSimulation()
+
   const [alerts, setAlerts] = useState<AlertItem[]>([])
   const [summary, setSummary] = useState<AlertSummaryResponse | null>(null)
   const [thresholds, setThresholds] = useState<ThresholdConfigResponse | null>(null)
@@ -61,8 +67,33 @@ export function AlertsPage() {
   }
 
   useEffect(() => {
-    fetchAlertsData()
-  }, [selectedLoc, selectedSev, selectedStatus])
+    if (isSimulationActive && simulationData?.alerts) {
+      let filtered = [...simulationData.alerts]
+      if (selectedLoc !== 'ALL') {
+        filtered = filtered.filter((a) => a.location_id === selectedLoc)
+      }
+      if (selectedSev !== 'ALL') {
+        filtered = filtered.filter((a) => a.severity === selectedSev)
+      }
+      setAlerts(filtered)
+
+      const redCount = simulationData.alerts.filter((a) => (a.severity as string) === 'RED' || (a.severity as string) === 'CRITICAL').length
+      const orangeCount = simulationData.alerts.filter((a) => (a.severity as string) === 'ORANGE' || (a.severity as string) === 'HIGH').length
+      const yellowCount = simulationData.alerts.filter((a) => (a.severity as string) === 'YELLOW' || (a.severity as string) === 'CAUTION').length
+      setSummary({
+        total_active: simulationData.alerts.length,
+        critical_red: redCount,
+        high_orange: orangeCount,
+        caution_yellow: yellowCount,
+        resolved_count: 0,
+        status_counts: { ACTIVE: simulationData.alerts.length },
+        last_assessment_utc: new Date().toISOString(),
+      })
+      setLoading(false)
+    } else if (!isSimulationActive) {
+      fetchAlertsData()
+    }
+  }, [isSimulationActive, simulationData, selectedLoc, selectedSev, selectedStatus])
 
   const handleAcknowledge = async (alertId: string) => {
     try {
@@ -127,6 +158,15 @@ export function AlertsPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
+            <Button
+              size="sm"
+              onClick={openModal}
+              className="bg-linear-to-r from-[#245B8F] to-[#1D4A75] hover:from-[#1D4A75] text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-2xs"
+            >
+              <FlaskConical className="h-3.5 w-3.5" />
+              <span>{isSimulationActive ? 'Switch Scenario' : 'Run Hazard Simulation'}</span>
+            </Button>
+
             <Button
               variant="secondary"
               size="sm"
@@ -256,17 +296,57 @@ export function AlertsPage() {
         </div>
       </div>
 
+      {/* Simulation Active Callout Banner */}
+      {isSimulationActive && (
+        <div className="p-4 rounded-xl bg-linear-to-r from-[#FFFBEB] via-[#FEF3C7] to-[#FFFBEB] border border-[#FCD34D] text-[#92400E] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in duration-150">
+          <div className="flex items-center gap-2.5">
+            <Flame className="h-5 w-5 text-[#D97706] shrink-0" />
+            <div>
+              <div className="font-bold text-sm text-[#78350F]">
+                SIMULATED HAZARD ALERTS: {activeScenario?.name}
+              </div>
+              <p className="text-xs text-[#92400E]">
+                Hypothetical emergency alerts generated from the active simulation model. Live database records remain completely unmutated.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <Button size="sm" onClick={openModal} className="bg-white border-[#FCD34D] text-[#92400E] hover:bg-[#FDE68A] text-xs">
+              Switch Scenario
+            </Button>
+            <Button size="sm" variant="secondary" onClick={reset} className="bg-[#245B8F] text-white hover:bg-[#1D4A75] text-xs">
+              Exit Simulation
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Alerts Timeline / Event Feed */}
       <div className="space-y-4">
         {alerts.length === 0 ? (
-          <div className="ocean-panel bg-white border border-[#DCE5EF] rounded-2xl p-8 text-center space-y-2 shadow-xs">
-            <CheckCircle2 className="h-8 w-8 text-[#10B981] mx-auto" />
-            <h4 className="font-['Outfit',sans-serif] text-base font-bold text-[#15304B]">
-              No Hazard Alerts Recorded
-            </h4>
-            <p className="text-xs text-[#64758A] max-w-md mx-auto">
-              All 8 registered coastal nodes are currently operating within safe physical wave thresholds.
-            </p>
+          <div className="ocean-panel bg-white border border-[#DCE5EF] rounded-2xl p-8 text-center space-y-4 shadow-xs">
+            <div className="h-12 w-12 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] flex items-center justify-center text-[#10B981] mx-auto">
+              <CheckCircle2 className="h-6 w-6" />
+            </div>
+            <div>
+              <h4 className="font-['Outfit',sans-serif] text-base font-bold text-[#15304B]">
+                No Hazard Alerts Recorded (Safe Conditions)
+              </h4>
+              <p className="text-xs text-[#64758A] max-w-md mx-auto mt-1 leading-relaxed">
+                All registered Arabian Sea coastal stations are currently operating within safe physical thresholds.
+                To test how OceanCast AI responds during severe marine weather or cyclonic conditions, run a simulation.
+              </p>
+            </div>
+            <div className="pt-2">
+              <Button
+                size="sm"
+                onClick={openModal}
+                className="bg-linear-to-r from-[#245B8F] to-[#1D4A75] hover:from-[#1D4A75] text-white text-xs font-semibold px-4 py-2 rounded-xl inline-flex items-center gap-2 shadow-xs"
+              >
+                <FlaskConical className="h-4 w-4" />
+                <span>Run Hazard Simulation</span>
+              </Button>
+            </div>
           </div>
         ) : (
           alerts.map((alt) => {
