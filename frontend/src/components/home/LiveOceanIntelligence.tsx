@@ -116,8 +116,8 @@ export function LiveOceanIntelligence() {
             badgeVariant="teal"
             icon={Waves}
             trend={{
-              value: `${peakPeriod ? peakPeriod.toFixed(1) : '8.9'}s`,
-              label: `Wind: ${windSpeed ? windSpeed.toFixed(1) : '4.2'} m/s`,
+              value: peakPeriod !== null ? `${peakPeriod.toFixed(1)}s` : '--',
+              label: windSpeed !== null ? `Wind: ${windSpeed.toFixed(1)} m/s` : 'Wind: --',
             }}
             onClick={() => navigate('/live')}
           />

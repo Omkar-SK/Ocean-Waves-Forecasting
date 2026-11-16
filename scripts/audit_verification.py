@@ -50,7 +50,7 @@ def audit_1_reconcile_test_counts():
     for name, cnt in backend_counts.items():
         print(f"  • {name:<35}: {cnt:>2} tests")
     print(f"  --> Total Formal Backend Pytest Tests: {total_backend}")
-    assert total_backend == 104, f"Expected 104 backend tests, found {total_backend}"
+    assert total_backend >= 112, f"Expected at least 112 backend tests, found {total_backend}"
     
     # 2. Inspect Frontend tests in frontend/src/__tests__/
     frontend_dir = PROJECT_ROOT / "frontend" / "src" / "__tests__"
@@ -66,7 +66,7 @@ def audit_1_reconcile_test_counts():
     for name, cnt in fe_counts.items():
         print(f"  • {name:<35}: {cnt:>2} tests")
     print(f"  --> Total Formal Frontend Vitest Tests: {total_frontend}")
-    assert total_frontend == 18, f"Expected 18 frontend tests, found {total_frontend}"
+    assert total_frontend >= 43, f"Expected at least 43 frontend tests, found {total_frontend}"
     
     print("\n[CLARIFICATION & RECONCILIATION]")
     print(f"  • Total Formal Automated Test Cases = {total_backend + total_frontend} ({total_backend} Backend + {total_frontend} Frontend).")

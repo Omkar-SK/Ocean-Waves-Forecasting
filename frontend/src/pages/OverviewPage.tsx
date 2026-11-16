@@ -93,7 +93,7 @@ export function OverviewPage() {
     setLoading(true)
     setError(null)
     try {
-      const [hHealth, hMetrics, mMulti, hForecast, alertSum, coastMet, nodesList, f1, f24] = await Promise.all([
+      const [hHealth, hMetrics, mMulti, hForecast, alertSum, coastMet, nodesList, f1, f6, f24] = await Promise.all([
         api.getHealth(),
         api.getMetricsByHorizon(horizon),
         api.getMultiHorizonMetrics(),
@@ -102,6 +102,7 @@ export function OverviewPage() {
         api.getCoastalMetrics(horizon, 'demo').catch(() => null),
         api.getCoastalLocations().catch(() => []),
         horizon === 1 ? Promise.resolve(null) : api.getLiveForecast(1, 'all', 'live').catch(() => null),
+        horizon === 6 ? Promise.resolve(null) : api.getLiveForecast(6, 'all', 'live').catch(() => null),
         horizon === 24 ? Promise.resolve(null) : api.getLiveForecast(24, 'all', 'live').catch(() => null),
       ])
 
@@ -114,9 +115,9 @@ export function OverviewPage() {
       setCoastalNodes(nodesList)
 
       const predCurrent = hForecast?.predictions?.lstm?.forecast_swh_m ?? hForecast?.predictions?.ann?.forecast_swh_m ?? null
-      const pred1 = horizon === 1 ? predCurrent : f1?.predictions?.lstm?.forecast_swh_m ?? 0.68
-      const pred6 = horizon === 6 ? predCurrent : 0.74
-      const pred24 = horizon === 24 ? predCurrent : f24?.predictions?.ann?.forecast_swh_m ?? 0.81
+      const pred1 = horizon === 1 ? predCurrent : (f1?.predictions?.lstm?.forecast_swh_m ?? f1?.predictions?.ann?.forecast_swh_m ?? null)
+      const pred6 = horizon === 6 ? predCurrent : (f6?.predictions?.lstm?.forecast_swh_m ?? f6?.predictions?.ann?.forecast_swh_m ?? null)
+      const pred24 = horizon === 24 ? predCurrent : (f24?.predictions?.lstm?.forecast_swh_m ?? f24?.predictions?.ann?.forecast_swh_m ?? null)
 
       setMultiForecasts({
         1: pred1,
@@ -162,7 +163,7 @@ export function OverviewPage() {
           lastPt.persistence = lastPt.actual
         }
 
-        const primaryVal = lstmVal ?? annVal ?? 0.74
+        const primaryVal = lstmVal ?? annVal ?? cnnVal ?? persistVal ?? null
         points.push({
           time: targetTimeStr,
           timestamp: hForecast.target_time_utc,
@@ -172,8 +173,8 @@ export function OverviewPage() {
           cnn1d: cnnVal,
           persistence: persistVal,
           isForecast: true,
-          uncertaintyUpper: primaryVal + 0.08,
-          uncertaintyLower: Math.max(0.1, primaryVal - 0.08),
+          uncertaintyUpper: primaryVal !== null ? primaryVal + 0.08 : null,
+          uncertaintyLower: primaryVal !== null ? Math.max(0.1, primaryVal - 0.08) : null,
         })
       }
 
@@ -235,10 +236,10 @@ export function OverviewPage() {
     if (chartData.length > 0) {
       const historicals = chartData.filter((d) => !d.isForecast && d.actual !== null && d.actual !== undefined)
       if (historicals.length > 0) {
-        return historicals[historicals.length - 1].actual
+        return historicals[historicals.length - 1].actual ?? null
       }
     }
-    return 0.68
+    return null
   }, [forecast, chartData, isSimulationActive, simulationData])
 
   const lastObs = forecast?.observation_window?.[forecast.observation_window.length - 1]
@@ -256,17 +257,17 @@ export function OverviewPage() {
     ? (simulationData.stats.critical_risk_zones > 0 ? 'RED' : 'ORANGE')
     : ((coastalMetrics?.high_risk_nodes && coastalMetrics.high_risk_nodes > 0) ? 'RED' : 'GREEN')
 
-  const seaState = getWmoSeaState(latestHs ?? 0.68)
+  const seaState = latestHs !== null ? getWmoSeaState(latestHs) : { code: 0, description: 'Calm', color: '#10B981' }
 
   const selectedPred =
     forecast?.predictions?.lstm?.forecast_swh_m ??
     forecast?.predictions?.ann?.forecast_swh_m ??
     multiForecasts[horizon] ??
-    0.74
+    null
 
   const deltaVsPersist =
     forecast?.predictions?.lstm?.delta_vs_persistence_m ??
-    (latestHs ? selectedPred - latestHs : 0.06)
+    (latestHs !== null && selectedPred !== null ? selectedPred - latestHs : null)
 
   return (
     <div className="space-y-8 pb-12">
@@ -377,7 +378,7 @@ export function OverviewPage() {
               <div className="mt-4 pt-3 border-t border-[#DCE5EF] flex items-center justify-between text-xs font-mono text-[#64758A]">
                 <span>WMO State Code {seaState.code}</span>
                 <span className="font-semibold text-[#102A43]">
-                  Max Swell Estimate: {((latestHs ?? 0.68) * 1.6).toFixed(2)}m
+                  Max Swell Estimate: {latestHs !== null ? `${(latestHs * 1.6).toFixed(2)}m` : '--'}
                 </span>
               </div>
             </div>
@@ -752,7 +753,7 @@ export function OverviewPage() {
             Solid line shows 24 consecutive observed hourly measurements. Dashed trajectories extend forward across the selected horizon (+{horizon}h).
           </span>
           <span className="font-mono text-[#20AFA7] font-semibold">
-            Δ vs Persistence: {deltaVsPersist >= 0 ? `+${deltaVsPersist.toFixed(3)}m` : `${deltaVsPersist.toFixed(3)}m`}
+            Δ vs Persistence: {deltaVsPersist !== null ? (deltaVsPersist >= 0 ? `+${deltaVsPersist.toFixed(3)}m` : `${deltaVsPersist.toFixed(3)}m`) : '--'}
           </span>
         </div>
       </section>

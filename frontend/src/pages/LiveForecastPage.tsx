@@ -111,32 +111,32 @@ export function LiveForecastPage() {
       return simulationData.stats.max_swh_m
     }
     if (selectedModel === 'WaveLSTM' || selectedModel === 'lstm') {
-      return lstmPred ?? persistPred ?? 0.74
+      return lstmPred ?? persistPred ?? null
     }
     if (selectedModel === 'WaveANN' || selectedModel === 'ann') {
-      return annPred ?? persistPred ?? 0.71
+      return annPred ?? persistPred ?? null
     }
     if (selectedModel === 'WaveCNN1D' || selectedModel === 'cnn1d') {
-      return cnnPred ?? persistPred ?? 0.73
+      return cnnPred ?? persistPred ?? null
     }
     if (horizon === 24) {
-      return annPred ?? lstmPred ?? persistPred ?? 0.81
+      return annPred ?? lstmPred ?? persistPred ?? null
     }
-    return lstmPred ?? annPred ?? cnnPred ?? persistPred ?? 0.74
+    return lstmPred ?? annPred ?? cnnPred ?? persistPred ?? null
   }, [isSimulationActive, simulationData, selectedModel, horizon, lstmPred, annPred, cnnPred, persistPred])
 
-  const seaState = getWmoSeaState(primeSwh)
+  const seaState = primeSwh !== null ? getWmoSeaState(primeSwh) : { code: 0, description: 'Calm', color: '#10B981' }
 
   const lastObs =
     forecast?.observation_window && forecast.observation_window.length > 0
       ? forecast.observation_window[forecast.observation_window.length - 1]
       : null
   const liveMwp = isSimulationActive
-    ? (simulationData?.scenario?.peak_mwp_s ?? 14.5)
-    : (lastObs?.mwp ?? 6.8)
+    ? (simulationData?.scenario?.peak_mwp_s ?? null)
+    : (lastObs?.mwp ?? null)
   const liveWindSpeed = isSimulationActive && simulationData?.stats?.max_wind_kmh
     ? Number((simulationData.stats.max_wind_kmh / 3.6).toFixed(1))
-    : (lastObs?.wind_speed ?? 4.2)
+    : (lastObs?.wind_speed ?? null)
 
   // 3-way comparison bar chart data
   const comparisonData = useMemo(() => {
@@ -235,8 +235,8 @@ export function LiveForecastPage() {
         mwp: liveMwp,
         wind_speed: liveWindSpeed,
         isForecast: true,
-        upperBound: primeSwh + 0.08,
-        lowerBound: Math.max(0.1, primeSwh - 0.08),
+        upperBound: primeSwh !== null ? primeSwh + 0.08 : null,
+        lowerBound: primeSwh !== null ? Math.max(0.1, primeSwh - 0.08) : null,
       })
     }
     return points
@@ -491,13 +491,19 @@ export function LiveForecastPage() {
             <div className="flex items-center justify-between">
               <span className="text-[#64758A]">Baseline Persistence:</span>
               <span className="font-semibold text-[#64758A]">
-                {persistPred !== undefined && persistPred !== null ? `${persistPred.toFixed(3)} m` : '0.680 m'}
+                {persistPred !== undefined && persistPred !== null ? `${persistPred.toFixed(3)} m` : '--'}
               </span>
             </div>
             <div className="flex items-center justify-between border-t border-[#DCE5EF] pt-2">
               <span className="text-[#64758A]">Forecast Uncertainty Envelope:</span>
               <span className="font-bold text-[#20AFA7]">
-                &plusmn;0.08 m ({Math.max(0.1, primeSwh - 0.08).toFixed(2)} &ndash; {(primeSwh + 0.08).toFixed(2)} m)
+                {primeSwh !== null ? (
+                  <>
+                    &plusmn;0.08 m ({Math.max(0.1, primeSwh - 0.08).toFixed(2)} &ndash; {(primeSwh + 0.08).toFixed(2)} m)
+                  </>
+                ) : (
+                  '--'
+                )}
               </span>
             </div>
           </div>
