@@ -39,7 +39,9 @@ env/
 *.swp
 *.swo
 
-# Testing and cache
+# Logs
+*.log
+training/*_log.txt
 .pytest_cache/
 .coverage
 htmlcov/
