@@ -1,0 +1,52 @@
+{
+  "model_type": "residual",
+  "architecture": "lstm",
+  "target": "delta_swh",
+  "horizon": 24,
+  "reconstruction": "SWH(t+24) = SWH(t) + pred_delta",
+  "residual_scaler": "models/residual/residual_scaler_h24.pkl",
+  "best_val_loss_scaled": 0.7086844464373929,
+  "n_parameters": 55617,
+  "seed": 42,
+  "max_epochs": 30,
+  "epochs_trained": 6,
+  "batch_size": 256,
+  "learning_rate": 0.001,
+  "weight_decay": 1e-05,
+  "grad_clip": 1.0,
+  "early_stop_patience": 5,
+  "train_loss_history": [
+    0.8338843486711582,
+    0.6936462390528418,
+    0.6239351799350319,
+    0.575722356191639,
+    0.5332605722723754,
+    0.5144277578657708
+  ],
+  "val_loss_history": [
+    0.7086844464373929,
+    0.7247433024147891,
+    0.7392072014344416,
+    0.8029045629957248,
+    0.8323852853636783,
+    0.7818464266380059
+  ],
+  "feature_cols": [
+    "swh",
+    "mwp",
+    "mwd_sin",
+    "mwd_cos",
+    "u10",
+    "v10",
+    "wind_speed",
+    "wind_dir_sin",
+    "wind_dir_cos",
+    "hour_sin",
+    "hour_cos",
+    "month_sin",
+    "month_cos"
+  ],
+  "seq_len": 24,
+  "residual_target_mean_m": 3.5708799259737134e-05,
+  "residual_target_std_m": 0.21139143407344818
+}
