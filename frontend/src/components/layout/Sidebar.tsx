@@ -51,6 +51,7 @@ const navGroups: NavGroup[] = [
   {
     groupName: 'Monitoring',
     items: [
+      { name: 'Forecast Verification', path: '/verification', icon: ShieldCheck, badge: 'Live' },
       { name: 'Coastal Locations', path: '/locations', icon: Radio, badge: 'Feeds' },
       { name: 'Accuracy & Drift', path: '/monitoring', icon: TrendingUp, badge: 'PSI' },
       { name: 'Historical Analysis', path: '/historical', icon: History, badge: '19.4k' },

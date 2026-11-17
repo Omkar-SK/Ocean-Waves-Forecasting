@@ -26,6 +26,9 @@ import type {
   ScenarioMetadataItem,
   SimulationStatusResponse,
   SimulationResultsResponse,
+  ContinuousAccuracyMetrics,
+  SevereEventTrackingMetrics,
+  VerificationDashboardResponse,
 } from '../types'
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? '/api'
@@ -82,13 +85,15 @@ export const api = {
     horizon: Horizon = 6,
     model: string = 'all',
     source: string = 'live',
-    locationId?: string
+    locationId?: string,
+    forecastMode: string = 'residual'
   ) => {
     const cleanModel = model.toLowerCase().replace('wave', '')
     const params = new URLSearchParams({
       horizon: horizon.toString(),
       model: cleanModel,
       source: source.toLowerCase(),
+      forecast_mode: forecastMode,
     })
     if (locationId) params.append('location_id', locationId)
     return request<ForecastResponse>(`/forecast/live?${params.toString()}`)
@@ -234,4 +239,34 @@ export const api = {
   resetSimulation: () => request<SimulationStatusResponse>('/simulation/reset', { method: 'POST' }),
   getSimulationStatus: () => request<SimulationStatusResponse>('/simulation/status'),
   getSimulationResults: () => request<SimulationResultsResponse>('/simulation/results'),
+
+  // 10. Continuous Forecast Verification & Model Monitoring
+  getVerificationDashboard: (locationId?: string, limit: number = 50) => {
+    const params = new URLSearchParams({ limit: limit.toString() })
+    if (locationId && locationId !== 'ALL') params.append('location_id', locationId)
+    return request<VerificationDashboardResponse>(`/verification/dashboard?${params.toString()}`)
+  },
+  getVerificationMetrics: (horizon: number = 6, window: string = 'all_time', locationId?: string) => {
+    const params = new URLSearchParams({ horizon: horizon.toString(), window })
+    if (locationId && locationId !== 'ALL') params.append('location_id', locationId)
+    return request<ContinuousAccuracyMetrics>(`/verification/metrics?${params.toString()}`)
+  },
+  getSevereEventsMonitoring: (locationId?: string) => {
+    const params = locationId && locationId !== 'ALL' ? `?location_id=${locationId}` : ''
+    return request<SevereEventTrackingMetrics>(`/verification/severe-events${params}`)
+  },
+  triggerVerificationMatching: (locationId?: string, toleranceSeconds: number = 1800) => {
+    const params = new URLSearchParams({ tolerance_seconds: toleranceSeconds.toString() })
+    if (locationId && locationId !== 'ALL') params.append('location_id', locationId)
+    return request<{ success: boolean; matched_count: number; message: string }>(
+      `/verification/trigger-matching?${params.toString()}`,
+      { method: 'POST' }
+    )
+  },
+  seedDemoObservations: (count: number = 24) => {
+    return request<{ success: boolean; observations_ingested: number; message: string }>(
+      `/verification/seed-demo-observations?count=${count}`,
+      { method: 'POST' }
+    )
+  },
 }

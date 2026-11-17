@@ -1,0 +1,101 @@
+{
+  "ExtremeWeighted_LSTM_h1": {
+    "horizon": 1,
+    "experiment_key": "ew_loss",
+    "experiment_name": "Extreme-Weighted Loss",
+    "architecture": "lstm",
+    "checkpoint_path": "D:\\OMKAR\\VITP\\SEM 5\\DL\\CP\\models\\extreme_experimental\\ExtremeWeighted_LSTM_h1.pt",
+    "best_val_loss": 0.41088691102866465,
+    "elapsed_seconds": 170.36
+  },
+  "Asymmetric_LSTM_h1": {
+    "horizon": 1,
+    "experiment_key": "asym_loss",
+    "experiment_name": "Asymmetric Penalty Loss",
+    "architecture": "lstm",
+    "checkpoint_path": "D:\\OMKAR\\VITP\\SEM 5\\DL\\CP\\models\\extreme_experimental\\Asymmetric_LSTM_h1.pt",
+    "best_val_loss": 0.44795385673772375,
+    "elapsed_seconds": 118.09
+  },
+  "Oversampled_LSTM_h1": {
+    "horizon": 1,
+    "experiment_key": "seo",
+    "experiment_name": "Stratified Extreme Oversampling",
+    "architecture": "lstm",
+    "checkpoint_path": "D:\\OMKAR\\VITP\\SEM 5\\DL\\CP\\models\\extreme_experimental\\Oversampled_LSTM_h1.pt",
+    "best_val_loss": 0.40853387833720084,
+    "elapsed_seconds": 220.05
+  },
+  "ExtremeWeighted_ANN_h6": {
+    "horizon": 6,
+    "experiment_key": "ew_loss",
+    "experiment_name": "Extreme-Weighted Loss",
+    "architecture": "ann",
+    "checkpoint_path": "D:\\OMKAR\\VITP\\SEM 5\\DL\\CP\\models\\extreme_experimental\\ExtremeWeighted_ANN_h6.pt",
+    "best_val_loss": 0.5526316873801996,
+    "elapsed_seconds": 64.38
+  },
+  "Asymmetric_ANN_h6": {
+    "horizon": 6,
+    "experiment_key": "asym_loss",
+    "experiment_name": "Asymmetric Penalty Loss",
+    "architecture": "ann",
+    "checkpoint_path": "D:\\OMKAR\\VITP\\SEM 5\\DL\\CP\\models\\extreme_experimental\\Asymmetric_ANN_h6.pt",
+    "best_val_loss": 0.6072343163712365,
+    "elapsed_seconds": 66.35
+  },
+  "Oversampled_ANN_h6": {
+    "horizon": 6,
+    "experiment_key": "seo",
+    "experiment_name": "Stratified Extreme Oversampling",
+    "architecture": "ann",
+    "checkpoint_path": "D:\\OMKAR\\VITP\\SEM 5\\DL\\CP\\models\\extreme_experimental\\Oversampled_ANN_h6.pt",
+    "best_val_loss": 0.5491491783752316,
+    "elapsed_seconds": 107.3
+  },
+  "MultiTask_Extreme_ANN_h6": {
+    "horizon": 6,
+    "experiment_key": "multitask",
+    "experiment_name": "Multi-Task Hazard Network",
+    "architecture": "multitask_ann",
+    "checkpoint_path": "D:\\OMKAR\\VITP\\SEM 5\\DL\\CP\\models\\extreme_experimental\\MultiTask_Extreme_ANN_h6.pt",
+    "best_val_loss": 0.52316346025864,
+    "elapsed_seconds": 94.83
+  },
+  "ExtremeWeighted_ANN_h24": {
+    "horizon": 24,
+    "experiment_key": "ew_loss",
+    "experiment_name": "Extreme-Weighted Loss",
+    "architecture": "ann",
+    "checkpoint_path": "D:\\OMKAR\\VITP\\SEM 5\\DL\\CP\\models\\extreme_experimental\\ExtremeWeighted_ANN_h24.pt",
+    "best_val_loss": 0.6553495784966198,
+    "elapsed_seconds": 36.89
+  },
+  "Asymmetric_ANN_h24": {
+    "horizon": 24,
+    "experiment_key": "asym_loss",
+    "experiment_name": "Asymmetric Penalty Loss",
+    "architecture": "ann",
+    "checkpoint_path": "D:\\OMKAR\\VITP\\SEM 5\\DL\\CP\\models\\extreme_experimental\\Asymmetric_ANN_h24.pt",
+    "best_val_loss": 0.67187698602897,
+    "elapsed_seconds": 57.78
+  },
+  "Oversampled_ANN_h24": {
+    "horizon": 24,
+    "experiment_key": "seo",
+    "experiment_name": "Stratified Extreme Oversampling",
+    "architecture": "ann",
+    "checkpoint_path": "D:\\OMKAR\\VITP\\SEM 5\\DL\\CP\\models\\extreme_experimental\\Oversampled_ANN_h24.pt",
+    "best_val_loss": 0.6469229513809347,
+    "elapsed_seconds": 42.17
+  },
+  "MultiTask_Extreme_ANN_h24": {
+    "horizon": 24,
+    "experiment_key": "multitask",
+    "experiment_name": "Multi-Task Hazard Network",
+    "architecture": "multitask_ann",
+    "checkpoint_path": "D:\\OMKAR\\VITP\\SEM 5\\DL\\CP\\models\\extreme_experimental\\MultiTask_Extreme_ANN_h24.pt",
+    "best_val_loss": 0.6367308436580316,
+    "elapsed_seconds": 43.54
+  }
+}

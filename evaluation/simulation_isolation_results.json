@@ -1,0 +1,94 @@
+{
+  "audit_timestamp_utc": "2026-11-16T14:39:55.683026+00:00",
+  "scenarios_evaluated": [
+    {
+      "scenario_id": "severe_wave",
+      "name": "Severe Wave Conditions",
+      "severity_category": "CRITICAL",
+      "base_swh_m": 5.5,
+      "peak_swh_m": 7.4,
+      "node_count": 8,
+      "heatmap_points_count": 15,
+      "simulated_alerts_count": 8,
+      "highest_alert_severity": "RED",
+      "disclaimer_present": true,
+      "all_checks_passed": true
+    },
+    {
+      "scenario_id": "tropical_cyclone",
+      "name": "Tropical Cyclone Impact",
+      "severity_category": "CRITICAL",
+      "base_swh_m": 7.0,
+      "peak_swh_m": 9.85,
+      "node_count": 8,
+      "heatmap_points_count": 15,
+      "simulated_alerts_count": 8,
+      "highest_alert_severity": "RED",
+      "disclaimer_present": true,
+      "all_checks_passed": true
+    },
+    {
+      "scenario_id": "coastal_flooding",
+      "name": "Coastal Flooding & Surge",
+      "severity_category": "HIGH",
+      "base_swh_m": 4.5,
+      "peak_swh_m": 6.5,
+      "node_count": 8,
+      "heatmap_points_count": 15,
+      "simulated_alerts_count": 8,
+      "highest_alert_severity": "RED",
+      "disclaimer_present": true,
+      "all_checks_passed": true
+    },
+    {
+      "scenario_id": "moderate_disturbance",
+      "name": "Moderate Marine Disturbance",
+      "severity_category": "MODERATE",
+      "base_swh_m": 2.6,
+      "peak_swh_m": 3.95,
+      "node_count": 8,
+      "heatmap_points_count": 15,
+      "simulated_alerts_count": 8,
+      "highest_alert_severity": "ORANGE",
+      "disclaimer_present": true,
+      "all_checks_passed": true
+    }
+  ],
+  "database_isolation_audit": {
+    "pre_intel_counts": {
+      "alerts": 0,
+      "alert_history": 0,
+      "forecast_ledger": 109,
+      "observations": 166,
+      "monitoring_events": 0,
+      "forecast_verifications": 19
+    },
+    "post_intel_counts": {
+      "alerts": 0,
+      "alert_history": 0,
+      "forecast_ledger": 109,
+      "observations": 166,
+      "monitoring_events": 0,
+      "forecast_verifications": 19
+    },
+    "intel_db_untouched": true,
+    "pre_verif_counts": {},
+    "post_verif_counts": {},
+    "verif_db_untouched": true,
+    "strict_isolation_guaranteed": true
+  },
+  "simulation_lifecycle_tests": {
+    "pause_passed": true,
+    "resume_passed": true,
+    "step_forward_passed": true,
+    "step_backward_passed": true,
+    "reset_passed": true,
+    "all_lifecycle_passed": true
+  },
+  "summary": {
+    "all_scenarios_valid": true,
+    "timeline_dynamics_verified": true,
+    "strict_isolation_guaranteed": true,
+    "overall_status": "PASSED"
+  }
+}

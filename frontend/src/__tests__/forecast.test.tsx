@@ -136,4 +136,56 @@ describe('Live Forecast Page', () => {
       expect(screen.getByText(/Geographic Validation Notice: Experimental Node/)).toBeInTheDocument()
     })
   })
+
+  it('displays residual forecast details including delta SWH, current SWH, and data freshness', async () => {
+    render(<LiveForecastPage />)
+
+    await waitFor(() => {
+      // Current Observed SWH
+      expect(screen.getByText(/Current Observed SWH/)).toBeInTheDocument()
+      expect(screen.getByText('0.680 m')).toBeInTheDocument()
+
+      // Predicted Delta SWH
+      expect(screen.getByText(/Predicted Wave Height Change/)).toBeInTheDocument()
+      expect(screen.getByText('+0.060 m')).toBeInTheDocument()
+
+      // Data freshness
+      expect(screen.getByText(/Data Freshness: ~8m ago/)).toBeInTheDocument()
+
+      // Reconstruction formula
+      expect(screen.getByText(/SWH\(t\+6\) = SWH\(t\) \+ ΔSWH/)).toBeInTheDocument()
+    })
+  })
+
+  it('renders horizon quick-selection cards for +1h, +6h, and +24h', async () => {
+    render(<LiveForecastPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('+1h Immediate Lead')).toBeInTheDocument()
+      expect(screen.getByText('+6h Operational Lead')).toBeInTheDocument()
+      expect(screen.getByText('+24h Day-Ahead Watch')).toBeInTheDocument()
+      expect(screen.getByText('+29.76% Skill vs Persistence')).toBeInTheDocument()
+    })
+
+    // Click on +1h card
+    fireEvent.click(screen.getByText('+1h Immediate Lead'))
+    await waitFor(() => {
+      expect(api.getLiveForecast).toHaveBeenCalledWith(1, 'all', 'live', 'mumbai', 'residual')
+    })
+  })
+
+  it('allows switching forecast mode between residual and absolute', async () => {
+    render(<LiveForecastPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('ΔSWH Residual')).toBeInTheDocument()
+      expect(screen.getByText('Absolute')).toBeInTheDocument()
+    })
+
+    // Switch to absolute mode
+    fireEvent.click(screen.getByText('Absolute'))
+    await waitFor(() => {
+      expect(api.getLiveForecast).toHaveBeenCalledWith(6, 'all', 'live', 'mumbai', 'absolute')
+    })
+  })
 })

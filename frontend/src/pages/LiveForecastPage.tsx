@@ -20,6 +20,9 @@ import {
   RotateCcw,
   ShieldAlert,
   ArrowUpRight,
+  TrendingUp,
+  TrendingDown,
+  Sparkles,
 } from 'lucide-react'
 import { useSimulation } from '../context/SimulationContext'
 import {
@@ -50,6 +53,7 @@ export function LiveForecastPage() {
 
   const [horizon, setHorizon] = useState<Horizon>(6)
   const [selectedModel, setSelectedModel] = useState<ModelName>('all')
+  const [forecastMode, setForecastMode] = useState<'residual' | 'absolute'>('residual')
   const [useDemoFallback, setUseDemoFallback] = useState<boolean>(false)
   const [locations, setLocations] = useState<CoastalNode[]>([])
   const [selectedLocationId, setSelectedLocationId] = useState<string>('mumbai')
@@ -78,7 +82,7 @@ export function LiveForecastPage() {
       const source = useDemoFallback ? 'demo' : 'live'
       const [statusRes, forecastRes] = await Promise.all([
         api.getLiveStatus(),
-        api.getLiveForecast(horizon, selectedModel, source, selectedLocationId),
+        api.getLiveForecast(horizon, selectedModel, source, selectedLocationId, forecastMode),
       ])
       setLiveStatus(statusRes)
       setForecast(forecastRes)
@@ -88,7 +92,7 @@ export function LiveForecastPage() {
     } finally {
       setLoading(false)
     }
-  }, [horizon, selectedModel, useDemoFallback, selectedLocationId])
+  }, [horizon, selectedModel, useDemoFallback, selectedLocationId, forecastMode])
 
   useEffect(() => {
     fetchForecast()
@@ -119,11 +123,32 @@ export function LiveForecastPage() {
     if (selectedModel === 'WaveCNN1D' || selectedModel === 'cnn1d') {
       return cnnPred ?? persistPred ?? null
     }
+    // Candidate selection for "all"
     if (horizon === 24) {
       return annPred ?? lstmPred ?? persistPred ?? null
     }
     return lstmPred ?? annPred ?? cnnPred ?? persistPred ?? null
   }, [isSimulationActive, simulationData, selectedModel, horizon, lstmPred, annPred, cnnPred, persistPred])
+
+  const activePredRecord = useMemo(() => {
+    if (!forecast?.predictions) return null
+    if (selectedModel === 'WaveLSTM' || selectedModel === 'lstm') return forecast.predictions.lstm
+    if (selectedModel === 'WaveANN' || selectedModel === 'ann') return forecast.predictions.ann
+    if (selectedModel === 'WaveCNN1D' || selectedModel === 'cnn1d') return forecast.predictions.cnn1d
+    if (horizon === 24) return forecast.predictions.ann || forecast.predictions.lstm
+    if (horizon === 6) return forecast.predictions.ann || forecast.predictions.lstm
+    return forecast.predictions.lstm || forecast.predictions.ann
+  }, [forecast, selectedModel, horizon])
+
+  const predictedDelta = useMemo(() => {
+    if (activePredRecord?.predicted_residual_m !== undefined && activePredRecord.predicted_residual_m !== null) {
+      return activePredRecord.predicted_residual_m
+    }
+    if (primeSwh !== null && persistPred !== undefined && persistPred !== null) {
+      return primeSwh - persistPred
+    }
+    return 0
+  }, [activePredRecord, primeSwh, persistPred])
 
   const seaState = primeSwh !== null ? getWmoSeaState(primeSwh) : { code: 0, description: 'Calm', color: '#10B981' }
 
@@ -155,7 +180,7 @@ export function LiveForecastPage() {
 
     if (lstmPred !== undefined && lstmPred !== null) {
       items.push({
-        name: 'WaveLSTM',
+        name: forecastMode === 'residual' ? 'Res WaveLSTM' : 'WaveLSTM',
         category: 'Deep Learning',
         swh: lstmPred,
         color: '#246B9E',
@@ -163,7 +188,7 @@ export function LiveForecastPage() {
     }
     if (annPred !== undefined && annPred !== null) {
       items.push({
-        name: 'WaveANN',
+        name: forecastMode === 'residual' ? 'Res WaveANN' : 'WaveANN',
         category: 'Deep Learning',
         swh: annPred,
         color: '#20AFA7',
@@ -171,7 +196,7 @@ export function LiveForecastPage() {
     }
     if (cnnPred !== undefined && cnnPred !== null) {
       items.push({
-        name: 'WaveCNN1D',
+        name: forecastMode === 'residual' ? 'Res WaveCNN1D' : 'WaveCNN1D',
         category: 'Deep Learning',
         swh: cnnPred,
         color: '#7C3AED',
@@ -187,7 +212,7 @@ export function LiveForecastPage() {
     }
     if (persistPred !== null && persistPred !== undefined) {
       items.push({
-        name: 'Persistence',
+        name: 'Persistence (Observed)',
         category: 'Baseline',
         swh: persistPred,
         color: '#D97706',
@@ -195,7 +220,7 @@ export function LiveForecastPage() {
     }
 
     return items
-  }, [forecast, lstmPred, annPred, cnnPred, nwpPred, persistPred, isSimulationActive, simulationData])
+  }, [forecast, lstmPred, annPred, cnnPred, nwpPred, persistPred, isSimulationActive, simulationData, forecastMode])
 
   const selectedNode = locations.find((n) => n.location_id === selectedLocationId) || locations[0]
   const isExperimental = selectedNode ? !selectedNode.is_reference : false
@@ -243,6 +268,7 @@ export function LiveForecastPage() {
   }, [isSimulationActive, simulationData, forecast, primeSwh, liveMwp, liveWindSpeed])
 
   const isDemo = forecast?.is_demo ?? false
+  const freshnessMinutes = liveStatus?.data_freshness_minutes ?? forecast?.data_freshness_minutes ?? 5
 
   return (
     <div className="space-y-6 pb-12">
@@ -299,7 +325,7 @@ export function LiveForecastPage() {
         </div>
       )}
 
-      {/* Live Operational Status Banner */}
+      {/* Live Operational Status Banner with Data Freshness */}
       {isDemo ? (
         <div className="rounded-2xl border border-[#FCD34D] bg-[#FEF3C7] p-5 text-[#92400E] shadow-xs">
           <div className="flex items-start gap-3">
@@ -310,6 +336,7 @@ export function LiveForecastPage() {
                   Academic Verification Mode: Historical ERA5 Validation Window
                 </span>
                 <Badge variant="warning">Offline Demo</Badge>
+                <span className="text-xs font-mono text-[#B45309]">Freshness: Calibration Archive</span>
               </div>
               <p className="text-xs text-[#92400E] leading-relaxed">
                 Inference was executed on the verified consecutive 24-hour ERA5 reanalysis window ending at{' '}
@@ -323,11 +350,18 @@ export function LiveForecastPage() {
           <div className="flex items-start gap-3">
             <Radio className="h-5 w-5 text-[#10B981] shrink-0 mt-0.5 animate-pulse" />
             <div className="space-y-1">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-bold text-sm text-[#065F46] font-['Outfit',sans-serif]">
                   Live Operational Telemetry Active
                 </span>
                 <Badge variant="teal" className="text-xs font-mono">Real-Time Open-Meteo ECMWF Feed</Badge>
+                <span className="text-xs font-mono text-[#047857] bg-[#D1FAE5] px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  Data Freshness: ~{freshnessMinutes}m ago
+                </span>
+                <Badge variant="outline" className="text-xs font-mono text-[#065F46] border-[#10B981]/40">
+                  {forecastMode === 'residual' ? 'Validated Residual Engine' : 'Absolute Inference Engine'}
+                </Badge>
               </div>
               <p className="text-xs text-[#047857] leading-relaxed">
                 Ingested consecutive 24 hourly marine & atmospheric NWP states from Open-Meteo for{' '}
@@ -338,6 +372,60 @@ export function LiveForecastPage() {
           </div>
         </div>
       )}
+
+      {/* Horizon Summary Quick-Cards (+1h, +6h, +24h) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[
+          {
+            h: 1 as Horizon,
+            title: '+1h Immediate Lead',
+            model: 'Residual WaveLSTM',
+            skill: '+29.76% Skill vs Persistence',
+            desc: 'High-frequency short-term wave projection',
+          },
+          {
+            h: 6 as Horizon,
+            title: '+6h Operational Lead',
+            model: 'Residual WaveANN',
+            skill: '+18.85% Skill vs Persistence',
+            desc: 'Operational coastal maritime horizon',
+          },
+          {
+            h: 24 as Horizon,
+            title: '+24h Day-Ahead Watch',
+            model: 'Residual WaveANN',
+            skill: '+11.09% Skill vs Persistence',
+            desc: 'Long-range coastal early warning lead',
+          },
+        ].map((item) => {
+          const isActive = horizon === item.h
+          return (
+            <div
+              key={item.h}
+              onClick={() => setHorizon(item.h)}
+              className={`p-4 rounded-xl border transition-all cursor-pointer ${
+                isActive
+                  ? 'bg-white border-[#20AFA7] shadow-sm ring-1 ring-[#20AFA7]'
+                  : 'bg-[#F8FAFC] border-[#DCE5EF] hover:bg-white hover:border-[#CBD5E1]'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-['Outfit',sans-serif] text-sm font-bold text-[#102A43]">
+                  {item.title}
+                </span>
+                <Badge variant={isActive ? 'teal' : 'outline'} className="text-[10px] font-mono">
+                  {item.model}
+                </Badge>
+              </div>
+              <div className="flex items-baseline justify-between mb-1">
+                <span className="text-xs text-[#64758A]">Held-Out Benchmark:</span>
+                <span className="text-xs font-mono font-bold text-[#20AFA7]">{item.skill}</span>
+              </div>
+              <p className="text-[11px] text-[#64758A] leading-tight">{item.desc}</p>
+            </div>
+          )
+        })}
+      </div>
 
       {/* Control Panel: Pure White Surface with Crisp Border */}
       <div className="bg-white border border-[#DCE5EF] rounded-2xl p-6 shadow-xs space-y-5">
@@ -352,16 +440,44 @@ export function LiveForecastPage() {
             </p>
           </div>
 
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={fetchForecast}
-            isLoading={loading}
-            className="self-start md:self-auto bg-white hover:bg-[#F4F7FB] border border-[#DCE5EF] text-[#102A43]"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 text-[#246B9E] ${loading ? 'animate-spin' : ''}`} />
-            <span>Run Inference</span>
-          </Button>
+          <div className="flex items-center gap-3 self-start md:self-auto">
+            {/* Forecast Paradigm Mode Toggle */}
+            <div className="flex items-center p-1 rounded-lg bg-[#F4F7FB] border border-[#DCE5EF] text-xs font-mono">
+              <button
+                type="button"
+                onClick={() => setForecastMode('residual')}
+                className={`px-2.5 py-1 rounded-md transition-all font-semibold ${
+                  forecastMode === 'residual'
+                    ? 'bg-[#20AFA7] text-white shadow-xs'
+                    : 'text-[#64758A] hover:text-[#102A43]'
+                }`}
+              >
+                ΔSWH Residual
+              </button>
+              <button
+                type="button"
+                onClick={() => setForecastMode('absolute')}
+                className={`px-2.5 py-1 rounded-md transition-all font-semibold ${
+                  forecastMode === 'absolute'
+                    ? 'bg-[#246B9E] text-white shadow-xs'
+                    : 'text-[#64758A] hover:text-[#102A43]'
+                }`}
+              >
+                Absolute
+              </button>
+            </div>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={fetchForecast}
+              isLoading={loading}
+              className="bg-white hover:bg-[#F4F7FB] border border-[#DCE5EF] text-[#102A43]"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 text-[#246B9E] ${loading ? 'animate-spin' : ''}`} />
+              <span>Run Inference</span>
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -467,9 +583,14 @@ export function LiveForecastPage() {
             <span className="text-xs font-mono uppercase font-semibold text-[#64758A] tracking-wider">
               +{horizon}H TARGET WAVE PROJECTION
             </span>
-            <Badge variant="teal" className="text-xs font-mono">
-              {selectedModel === 'all' ? (horizon === 24 ? 'WaveANN' : 'WaveLSTM') : selectedModel}
-            </Badge>
+            <div className="flex items-center gap-1.5">
+              <Badge variant="teal" className="text-xs font-mono">
+                {activePredRecord?.model_name ?? (selectedModel === 'all' ? (horizon === 24 ? 'WaveANN' : 'WaveLSTM') : selectedModel)}
+              </Badge>
+              <Badge variant={forecast?.is_reference ? 'outline' : 'warning'} className="text-[10px] font-mono">
+                {forecast?.validation_status === 'reference_validated' ? 'Validated Reference' : 'Unvalidated Node'}
+              </Badge>
+            </div>
           </div>
 
           <div className="flex items-baseline gap-3 my-2">
@@ -481,21 +602,53 @@ export function LiveForecastPage() {
             </Badge>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-[#F4F7FB] border border-[#DCE5EF] space-y-2 text-xs font-mono">
+          {/* Demarcation: Observations vs Predictions */}
+          <div className="p-3.5 rounded-xl bg-[#F4F7FB] border border-[#DCE5EF] space-y-2.5 text-xs font-mono">
+            {/* Current Observation */}
             <div className="flex items-center justify-between">
-              <span className="text-[#64758A]">Target UTC Time:</span>
+              <span className="text-[#64758A] flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5 text-[#246B9E]" />
+                Current Observed SWH (t):
+              </span>
+              <span className="font-bold text-[#102A43]">
+                {persistPred !== undefined && persistPred !== null ? `${persistPred.toFixed(3)} m` : '--'}
+              </span>
+            </div>
+
+            {/* Predicted Change */}
+            <div className="flex items-center justify-between">
+              <span className="text-[#64758A] flex items-center gap-1">
+                {predictedDelta >= 0 ? (
+                  <TrendingUp className="h-3.5 w-3.5 text-[#20AFA7]" />
+                ) : (
+                  <TrendingDown className="h-3.5 w-3.5 text-[#246B9E]" />
+                )}
+                Predicted Wave Height Change (ΔSWH):
+              </span>
+              <span className={`font-bold ${predictedDelta >= 0 ? 'text-[#20AFA7]' : 'text-[#246B9E]'}`}>
+                {predictedDelta >= 0 ? `+${predictedDelta.toFixed(3)} m` : `${predictedDelta.toFixed(3)} m`}
+              </span>
+            </div>
+
+            {/* Target Time */}
+            <div className="flex items-center justify-between border-t border-[#DCE5EF] pt-2">
+              <span className="text-[#64758A]">Target Projection UTC:</span>
               <span className="font-bold text-[#102A43]">
                 {forecast?.target_time_utc ? formatDateTime(forecast.target_time_utc) : `+${horizon}h`}
               </span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[#64758A]">Baseline Persistence:</span>
-              <span className="font-semibold text-[#64758A]">
-                {persistPred !== undefined && persistPred !== null ? `${persistPred.toFixed(3)} m` : '--'}
+
+            {/* Reconstruction Formula */}
+            <div className="flex items-center justify-between border-t border-[#DCE5EF] pt-2">
+              <span className="text-[#64758A]">Reconstruction:</span>
+              <span className="font-semibold text-[#065F46] text-[11px]">
+                SWH(t+{horizon}) = SWH(t) + ΔSWH
               </span>
             </div>
+
+            {/* Uncertainty envelope */}
             <div className="flex items-center justify-between border-t border-[#DCE5EF] pt-2">
-              <span className="text-[#64758A]">Forecast Uncertainty Envelope:</span>
+              <span className="text-[#64758A]">Confidence Envelope:</span>
               <span className="font-bold text-[#20AFA7]">
                 {primeSwh !== null ? (
                   <>
@@ -519,7 +672,7 @@ export function LiveForecastPage() {
               </h3>
             </div>
             <span className="text-xs font-mono text-[#64758A]">
-              ECMWF vs PyTorch Checkpoints
+              ECMWF vs {forecastMode === 'residual' ? 'Residual Deep Learning' : 'Absolute Models'}
             </span>
           </div>
 
@@ -550,21 +703,26 @@ export function LiveForecastPage() {
         </div>
       </div>
 
-      {/* Actual vs Predicted Trajectory Viewport */}
+      {/* Actual Observations vs Predicted Trajectory Viewport */}
       <div className="bg-white border border-[#DCE5EF] rounded-2xl p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between border-b border-[#DCE5EF] pb-3">
           <div>
             <h3 className="font-['Outfit',sans-serif] text-base font-bold text-[#102A43] flex items-center gap-2">
               <Waves className="h-4 w-4 text-[#20AFA7]" />
-              <span>Observation Sequence vs Forward Neural Projection</span>
+              <span>Observation Sequence (Past 24h) vs Forward Neural Projection</span>
             </h3>
             <p className="text-xs text-[#64758A] mt-0.5 font-normal">
-              Continuous 24-hour sequence with model projection and confidence envelope
+              Demarcated continuous 24-hour observation sequence with forward model projection and confidence envelope
             </p>
           </div>
-          <Badge variant="teal" className="text-xs font-mono">
-            {isDemo ? 'ERA5 Historical' : 'ECMWF Live'}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-xs font-mono">
+              Observed: Last 24h
+            </Badge>
+            <Badge variant="teal" className="text-xs font-mono">
+              Target: +{horizon}h Forecast
+            </Badge>
+          </div>
         </div>
 
         <div className="h-[300px] w-full">

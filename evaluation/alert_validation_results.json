@@ -1,0 +1,132 @@
+{
+  "audit_timestamp_utc": "2026-11-16T14:39:54.918870+00:00",
+  "fingerprint_determinism_tests": {
+    "fingerprint_sample": "mumbai_offshore:project_forecast_risk:6h:2026-11-16T12:00:00Z",
+    "deterministic_repeated_calls": true,
+    "distinct_location_differentiates": true,
+    "distinct_horizon_differentiates": true,
+    "distinct_timestamp_differentiates": true,
+    "all_determinism_passed": true
+  },
+  "lifecycle_state_machine_tests": [
+    {
+      "step": "Step 1: Initial Trigger",
+      "input_swh_m": 1.8,
+      "expected_status": "ACTIVE",
+      "actual_status": "ACTIVE",
+      "expected_severity": "YELLOW",
+      "actual_severity": "YELLOW",
+      "passed": true
+    },
+    {
+      "step": "Step 2: Duplicate Suppression",
+      "input": "Identical second assessment",
+      "expected_count": 1,
+      "actual_count": 1,
+      "same_alert_id": true,
+      "passed": true
+    },
+    {
+      "step": "Step 3: Severity Escalation to ORANGE",
+      "input_swh_m": 2.8,
+      "expected_severity": "ORANGE",
+      "actual_severity": "ORANGE",
+      "passed": true
+    },
+    {
+      "step": "Step 4: Severity Escalation to RED",
+      "input_swh_m": 4.2,
+      "expected_severity": "RED",
+      "actual_severity": "RED",
+      "passed": true
+    },
+    {
+      "step": "Step 5: Operator Acknowledgement",
+      "expected_status": "ACKNOWLEDGED",
+      "actual_status": "ACKNOWLEDGED",
+      "has_notes": true,
+      "passed": true
+    },
+    {
+      "step": "Step 6: Hysteresis Deadband (1.45m)",
+      "input_swh_m": 1.45,
+      "description": "Below caution (1.50m) but above resolution threshold (1.35m)",
+      "expected_status": "ACKNOWLEDGED (Not resolved)",
+      "actual_status": "ACKNOWLEDGED",
+      "passed": true
+    },
+    {
+      "step": "Step 7: Exact Hysteresis Boundary (1.350m)",
+      "input_swh_m": 1.35,
+      "expected_status": "ACKNOWLEDGED (Not resolved, requires < 1.350m)",
+      "actual_status": "ACKNOWLEDGED",
+      "passed": true
+    },
+    {
+      "step": "Step 8: De-Escalation Resolution (1.25m)",
+      "input_swh_m": 1.25,
+      "expected_status": "RESOLVED",
+      "actual_status": "RESOLVED",
+      "passed": true
+    },
+    {
+      "step": "Step 9: Past Event Expiration",
+      "expected_status": "EXPIRED",
+      "actual_status": "EXPIRED",
+      "passed": true
+    },
+    {
+      "step": "Step 10: Degradation Resilience",
+      "input": "Degraded/Unavailable telemetry during active alert",
+      "expected_status": "ACTIVE (Preserved, NOT resolved)",
+      "actual_status": "ACTIVE",
+      "passed": true
+    }
+  ],
+  "hysteresis_resolution_tests": [],
+  "data_degradation_resilience_tests": [],
+  "concurrent_stress_tests": {
+    "inserts_attempted": 50,
+    "success": true,
+    "errors": []
+  },
+  "summary": {
+    "all_lifecycle_tests_passed": true,
+    "concurrency_verified": true,
+    "resilience_to_telemetry_outages_verified": true,
+    "hysteresis_deadband_verified": true
+  },
+  "history_audit_trail_count": 6,
+  "history_transitions": [
+    {
+      "from": null,
+      "to": "ACTIVE",
+      "reason": "THRESHOLD_EXCEEDED"
+    },
+    {
+      "from": "ACTIVE",
+      "to": "ACTIVE",
+      "reason": "FORECAST_UPDATE"
+    },
+    {
+      "from": "ACTIVE",
+      "to": "ACTIVE",
+      "reason": "SEVERITY_ESCALATION: YELLOW -> ORANGE"
+    },
+    {
+      "from": "ACTIVE",
+      "to": "ACTIVE",
+      "reason": "SEVERITY_ESCALATION: ORANGE -> RED"
+    },
+    {
+      "from": "ACTIVE",
+      "to": "ACKNOWLEDGED",
+      "reason": "OPERATOR_ACKNOWLEDGED"
+    },
+    {
+      "from": "ACKNOWLEDGED",
+      "to": "RESOLVED",
+      "reason": "DE_ESCALATION_RESOLVED: Dropped below 1.35m"
+    }
+  ]
+}

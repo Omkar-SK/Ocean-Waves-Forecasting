@@ -1,0 +1,345 @@
+{
+  "audit_timestamp_utc": "2026-11-16T14:39:54.916865+00:00",
+  "threshold_configuration": {
+    "caution_m": 1.5,
+    "high_risk_m": 2.5,
+    "critical_m": 4.0,
+    "hysteresis_buffer_m": 0.15,
+    "units": "meters (Significant Wave Height, Hs)",
+    "version": "demo-v1.0",
+    "is_demonstration": true,
+    "guidance_notice": "Demonstration engineering thresholds for decision-support prototype. Not an official maritime safety threshold and not a substitute for national meteorological warnings (e.g., INCOIS/IMD)."
+  },
+  "threshold_validation_invariants": [
+    {
+      "test": "Valid defaults",
+      "arguments": {},
+      "expected_valid": true,
+      "status": "PASSED",
+      "error_observed": null
+    },
+    {
+      "test": "Valid custom thresholds",
+      "arguments": {
+        "caution_m": 1.8,
+        "high_risk_m": 3.0,
+        "critical_m": 5.0,
+        "hysteresis_buffer_m": 0.2
+      },
+      "expected_valid": true,
+      "status": "PASSED",
+      "error_observed": null
+    },
+    {
+      "test": "Negative caution threshold",
+      "arguments": {
+        "caution_m": -1.0
+      },
+      "expected_valid": false,
+      "status": "PASSED",
+      "error_observed": "Threshold 'caution_m' must be a positive number, got -1.0."
+    },
+    {
+      "test": "Zero caution threshold",
+      "arguments": {
+        "caution_m": 0.0
+      },
+      "expected_valid": false,
+      "status": "PASSED",
+      "error_observed": "Threshold 'caution_m' must be a positive number, got 0.0."
+    },
+    {
+      "test": "Disordered: caution > high",
+      "arguments": {
+        "caution_m": 3.0,
+        "high_risk_m": 2.0,
+        "critical_m": 4.0
+      },
+      "expected_valid": false,
+      "status": "PASSED",
+      "error_observed": "Thresholds must be strictly increasing: 0 < caution (3.0) < high_risk (2.0) < critical (4.0)."
+    },
+    {
+      "test": "Equal: caution == high",
+      "arguments": {
+        "caution_m": 2.5,
+        "high_risk_m": 2.5,
+        "critical_m": 4.0
+      },
+      "expected_valid": false,
+      "status": "PASSED",
+      "error_observed": "Thresholds must be strictly increasing: 0 < caution (2.5) < high_risk (2.5) < critical (4.0)."
+    },
+    {
+      "test": "Disordered: high > critical",
+      "arguments": {
+        "caution_m": 1.5,
+        "high_risk_m": 4.5,
+        "critical_m": 4.0
+      },
+      "expected_valid": false,
+      "status": "PASSED",
+      "error_observed": "Thresholds must be strictly increasing: 0 < caution (1.5) < high_risk (4.5) < critical (4.0)."
+    },
+    {
+      "test": "Negative hysteresis buffer",
+      "arguments": {
+        "hysteresis_buffer_m": -0.1
+      },
+      "expected_valid": false,
+      "status": "PASSED",
+      "error_observed": "hysteresis_buffer_m must be non-negative."
+    },
+    {
+      "test": "Hysteresis buffer >= min interval (1.0m)",
+      "arguments": {
+        "hysteresis_buffer_m": 1.05
+      },
+      "expected_valid": false,
+      "status": "PASSED",
+      "error_observed": "hysteresis_buffer_m (1.05) must be smaller than the minimum threshold interval (1.0)."
+    }
+  ],
+  "boundary_perturbation_tests": [
+    {
+      "boundary": "Caution - 10mm",
+      "test_value_m": 1.49,
+      "assigned_level": "GREEN",
+      "expected_level": "GREEN",
+      "threshold_crossed_m": null,
+      "expected_crossed_m": null,
+      "status": "PASSED"
+    },
+    {
+      "boundary": "Caution - 1mm (1.499m)",
+      "test_value_m": 1.499,
+      "assigned_level": "GREEN",
+      "expected_level": "GREEN",
+      "threshold_crossed_m": null,
+      "expected_crossed_m": null,
+      "status": "PASSED"
+    },
+    {
+      "boundary": "Caution Exact (1.500m)",
+      "test_value_m": 1.5,
+      "assigned_level": "YELLOW",
+      "expected_level": "YELLOW",
+      "threshold_crossed_m": 1.5,
+      "expected_crossed_m": 1.5,
+      "status": "PASSED"
+    },
+    {
+      "boundary": "Caution + 1mm (1.501m)",
+      "test_value_m": 1.501,
+      "assigned_level": "YELLOW",
+      "expected_level": "YELLOW",
+      "threshold_crossed_m": 1.5,
+      "expected_crossed_m": 1.5,
+      "status": "PASSED"
+    },
+    {
+      "boundary": "Caution + 10mm",
+      "test_value_m": 1.51,
+      "assigned_level": "YELLOW",
+      "expected_level": "YELLOW",
+      "threshold_crossed_m": 1.5,
+      "expected_crossed_m": 1.5,
+      "status": "PASSED"
+    },
+    {
+      "boundary": "High Risk - 10mm",
+      "test_value_m": 2.49,
+      "assigned_level": "YELLOW",
+      "expected_level": "YELLOW",
+      "threshold_crossed_m": 1.5,
+      "expected_crossed_m": 1.5,
+      "status": "PASSED"
+    },
+    {
+      "boundary": "High Risk - 1mm (2.499m)",
+      "test_value_m": 2.499,
+      "assigned_level": "YELLOW",
+      "expected_level": "YELLOW",
+      "threshold_crossed_m": 1.5,
+      "expected_crossed_m": 1.5,
+      "status": "PASSED"
+    },
+    {
+      "boundary": "High Risk Exact (2.500m)",
+      "test_value_m": 2.5,
+      "assigned_level": "ORANGE",
+      "expected_level": "ORANGE",
+      "threshold_crossed_m": 2.5,
+      "expected_crossed_m": 2.5,
+      "status": "PASSED"
+    },
+    {
+      "boundary": "High Risk + 1mm (2.501m)",
+      "test_value_m": 2.501,
+      "assigned_level": "ORANGE",
+      "expected_level": "ORANGE",
+      "threshold_crossed_m": 2.5,
+      "expected_crossed_m": 2.5,
+      "status": "PASSED"
+    },
+    {
+      "boundary": "High Risk + 10mm",
+      "test_value_m": 2.51,
+      "assigned_level": "ORANGE",
+      "expected_level": "ORANGE",
+      "threshold_crossed_m": 2.5,
+      "expected_crossed_m": 2.5,
+      "status": "PASSED"
+    },
+    {
+      "boundary": "Critical - 10mm",
+      "test_value_m": 3.99,
+      "assigned_level": "ORANGE",
+      "expected_level": "ORANGE",
+      "threshold_crossed_m": 2.5,
+      "expected_crossed_m": 2.5,
+      "status": "PASSED"
+    },
+    {
+      "boundary": "Critical - 1mm (3.999m)",
+      "test_value_m": 3.999,
+      "assigned_level": "ORANGE",
+      "expected_level": "ORANGE",
+      "threshold_crossed_m": 2.5,
+      "expected_crossed_m": 2.5,
+      "status": "PASSED"
+    },
+    {
+      "boundary": "Critical Exact (4.000m)",
+      "test_value_m": 4.0,
+      "assigned_level": "RED",
+      "expected_level": "RED",
+      "threshold_crossed_m": 4.0,
+      "expected_crossed_m": 4.0,
+      "status": "PASSED"
+    },
+    {
+      "boundary": "Critical + 1mm (4.001m)",
+      "test_value_m": 4.001,
+      "assigned_level": "RED",
+      "expected_level": "RED",
+      "threshold_crossed_m": 4.0,
+      "expected_crossed_m": 4.0,
+      "status": "PASSED"
+    },
+    {
+      "boundary": "Critical + 10mm",
+      "test_value_m": 4.01,
+      "assigned_level": "RED",
+      "expected_level": "RED",
+      "threshold_crossed_m": 4.0,
+      "expected_crossed_m": 4.0,
+      "status": "PASSED"
+    }
+  ],
+  "edge_and_extreme_tests": [
+    {
+      "description": "Absolute Calm (0.0m)",
+      "value_m": 0.0,
+      "assigned_level": "GREEN",
+      "expected_level": "GREEN",
+      "status": "PASSED"
+    },
+    {
+      "description": "Low Swell (0.35m)",
+      "value_m": 0.35,
+      "assigned_level": "GREEN",
+      "expected_level": "GREEN",
+      "status": "PASSED"
+    },
+    {
+      "description": "Below Hysteresis Exit (1.349m)",
+      "value_m": 1.349,
+      "assigned_level": "GREEN",
+      "expected_level": "GREEN",
+      "status": "PASSED"
+    },
+    {
+      "description": "At Hysteresis Exit (1.350m)",
+      "value_m": 1.35,
+      "assigned_level": "GREEN",
+      "expected_level": "GREEN",
+      "status": "PASSED"
+    },
+    {
+      "description": "Severe Monsoon Swell (5.50m)",
+      "value_m": 5.5,
+      "assigned_level": "RED",
+      "expected_level": "RED",
+      "status": "PASSED"
+    },
+    {
+      "description": "Catastrophic Cyclone Wave (9.85m)",
+      "value_m": 9.85,
+      "assigned_level": "RED",
+      "expected_level": "RED",
+      "status": "PASSED"
+    },
+    {
+      "description": "Offshore Tsunami / Extreme Surge (15.00m)",
+      "value_m": 15.0,
+      "assigned_level": "RED",
+      "expected_level": "RED",
+      "status": "PASSED"
+    }
+  ],
+  "hysteresis_boundary_tests": [
+    {
+      "test_value_m": 1.45,
+      "resolution_threshold_m": 1.35,
+      "condition": "swh (1.450m) < res_threshold (1.350m)",
+      "should_resolve": false,
+      "actual_resolve": false,
+      "status": "PASSED",
+      "description": "Dropped to 1.45m (> 1.35m resolution threshold)"
+    },
+    {
+      "test_value_m": 1.36,
+      "resolution_threshold_m": 1.35,
+      "condition": "swh (1.360m) < res_threshold (1.350m)",
+      "should_resolve": false,
+      "actual_resolve": false,
+      "status": "PASSED",
+      "description": "Dropped to 1.36m (> 1.35m resolution threshold)"
+    },
+    {
+      "test_value_m": 1.35,
+      "resolution_threshold_m": 1.35,
+      "condition": "swh (1.350m) < res_threshold (1.350m)",
+      "should_resolve": false,
+      "actual_resolve": false,
+      "status": "PASSED",
+      "description": "Dropped to exact 1.350m (not < 1.350m)"
+    },
+    {
+      "test_value_m": 1.349,
+      "resolution_threshold_m": 1.35,
+      "condition": "swh (1.349m) < res_threshold (1.350m)",
+      "should_resolve": true,
+      "actual_resolve": true,
+      "status": "PASSED",
+      "description": "Dropped to 1.349m (< 1.350m resolution threshold)"
+    },
+    {
+      "test_value_m": 1.2,
+      "resolution_threshold_m": 1.35,
+      "condition": "swh (1.200m) < res_threshold (1.350m)",
+      "should_resolve": true,
+      "actual_resolve": true,
+      "status": "PASSED",
+      "description": "Dropped to 1.20m (clearly resolved)"
+    }
+  ],
+  "summary": {
+    "total_boundary_tests": 36,
+    "all_tests_passed": true,
+    "classification_monotonic": true,
+    "strict_ordering_enforced": true,
+    "hysteresis_deadband_m": 0.15
+  }
+}

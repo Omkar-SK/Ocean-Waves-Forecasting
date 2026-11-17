@@ -107,6 +107,20 @@ export interface SingleModelForecast {
   delta_vs_nwp_m?: number | null
   sea_state_desc: string
   sea_state_color: string
+  // Residual learning integration fields
+  current_swh_m?: number | null
+  predicted_residual_m?: number | null
+  forecast_mode?: 'residual' | 'absolute'
+  model_version?: string
+  validation_status?: string
+  rmse_skill_score?: number | null
+  is_candidate_model?: boolean
+  reconstruction_formula?: string
+  predicted_swh?: number | null
+  current_swh?: number | null
+  predicted_residual?: number | null
+  selected_model_architecture?: string
+  model_validation_status?: string
 }
 
 export interface ObservationWindowStep {
@@ -137,6 +151,21 @@ export interface ForecastResponse {
   location_name?: string
   is_reference?: boolean
   validation_status?: string
+  // Enhanced residual reporting attributes
+  forecast_mode?: 'residual' | 'absolute'
+  current_swh?: number | null
+  current_swh_m?: number | null
+  predicted_swh?: number | null
+  predicted_residual?: number | null
+  forecast_horizon?: number
+  selected_model_architecture?: string
+  model_version?: string
+  input_timestamp?: string
+  data_source?: string
+  data_freshness?: string
+  data_freshness_minutes?: number | null
+  forecast_generation_timestamp?: string
+  model_validation_status?: string
 }
 
 export interface ForecastStatusResponse {
@@ -511,4 +540,115 @@ export interface SimulationResultsResponse {
   heatmap_points: HeatmapPoint[]
   alerts: AlertItem[]
   time_series: SimulatedTimeSeriesPoint[]
+}
+
+// ----------------------------------------------------------------------------
+// Continuous Forecast Verification & Model Performance Monitoring
+// ----------------------------------------------------------------------------
+export type VerificationRecordStatus =
+  | 'PENDING_VERIFICATION'
+  | 'VERIFIED'
+  | 'OBSERVATION_UNAVAILABLE'
+  | 'INVALID_OBSERVATION'
+
+export type VerificationWindow = 'last_24h' | 'last_7d' | 'last_30d' | 'all_time'
+
+export interface VerificationRecord {
+  forecast_id: string
+  location_id: string
+  forecast_origin_time: string
+  target_timestamp: string
+  forecast_horizon: number
+  model_architecture: string
+  model_version: string
+  current_swh: number
+  predicted_swh: number
+  predicted_residual?: number | null
+  observed_swh?: number | null
+  observation_time?: string | null
+  forecast_error?: number | null
+  absolute_error?: number | null
+  persistence_error?: number | null
+  status: VerificationRecordStatus
+  status_reason?: string | null
+  is_prospective: boolean
+  is_severe_actual: boolean
+  is_severe_forecast: boolean
+  data_source: string
+  validation_status: string
+  created_at_utc: string
+  verified_at_utc?: string | null
+}
+
+export interface AbsoluteErrorDistribution {
+  p25?: number | null
+  median?: number | null
+  p75?: number | null
+  p90?: number | null
+  p95?: number | null
+  max_error?: number | null
+}
+
+export interface ContinuousAccuracyMetrics {
+  horizon_hours: number
+  model_architecture: string
+  window: string
+  sample_count: number
+  total_issued_count: number
+  coverage_pct: number
+  mae?: number | null
+  mse?: number | null
+  rmse?: number | null
+  r2?: number | null
+  bias?: number | null
+  persistence_mae?: number | null
+  persistence_rmse?: number | null
+  rmse_skill_pct?: number | null
+  mae_skill_pct?: number | null
+  error_distribution: AbsoluteErrorDistribution
+  is_statistically_reliable: boolean
+  min_samples_required: number
+  reliability_notice: string
+}
+
+export interface SevereEventTrackingMetrics {
+  actual_severe_events_count: number
+  forecasted_severe_events_count: number
+  underprediction_frequency_pct?: number | null
+  missed_severe_events_count: number
+  false_alarms_count: number
+  average_detection_lead_time_hours?: number | null
+  historical_validation_sample_size: number
+  historical_severe_rmse_skill: Record<string, number>
+  operational_severe_sample_size: number
+  operational_severe_status: string
+  scientific_notice: string
+}
+
+export interface ModelHealthMonitoringSummary {
+  prediction_drift_status: string
+  input_feature_drift_status: string
+  missing_observations_count: number
+  missing_observations_rate_pct: number
+  stale_data_alerts_count: number
+  increasing_forecast_errors_warning: boolean
+  error_degradation_ratio?: number | null
+  extreme_underprediction_warning: boolean
+  model_inference_failures_count: number
+  active_warnings: string[]
+}
+
+export interface VerificationDashboardResponse {
+  evaluation_time_utc: string
+  location_id?: string | null
+  total_forecasts_issued: number
+  total_verified_observations: number
+  total_pending_verifications: number
+  total_unavailable_observations: number
+  total_invalid_observations: number
+  horizon_metrics: Record<string, Record<string, ContinuousAccuracyMetrics>>
+  severe_events: SevereEventTrackingMetrics
+  monitoring_health: ModelHealthMonitoringSummary
+  recent_verifications: VerificationRecord[]
+  historical_vs_operational_summary: Record<string, any>
 }

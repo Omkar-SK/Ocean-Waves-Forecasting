@@ -62,6 +62,8 @@ class LiveForecastResult:
     generated_at_utc: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     location_id: str = "mumbai_offshore"
     validation_status: str = "reference_validated"
+    forecast_mode: str = "absolute"
+    predicted_residual_m: Optional[float] = None
 
 
 def fetch_live_marine_and_weather(
@@ -557,6 +559,102 @@ def predict_live_forecast(
         pass
 
     return res
+
+
+def predict_residual_forecast(
+    prepared_df: pd.DataFrame,
+    anchor_time: pd.Timestamp,
+    horizon: int,
+    model_type: Optional[str] = None,
+    scaler: Optional[TimeSeriesScaler] = None,
+    external_nwp_forecast: Optional[float] = None,
+    is_demo: bool = False,
+    source_info: Optional[Dict[str, Any]] = None,
+    location_id: str = "mumbai_offshore",
+    validation_status: Optional[str] = None,
+) -> LiveForecastResult:
+    """
+    Executes validated residual (ΔSWH) deep learning forecasting.
+    Reconstructs: SWH(t+H) = SWH(t) + Predicted_ΔSWH
+    """
+    import pickle
+    from src.models.registry import ModelRegistry, ForecastMode
+
+    if len(prepared_df) != 24:
+        raise ValueError(f"Prepared window must have exactly 24 rows, got {len(prepared_df)}.")
+
+    if scaler is None:
+        scaler = TimeSeriesScaler.load(PROJECT_ROOT / "models" / "scaler.pkl")
+
+    # Resolve candidate or specific residual model
+    reg_entry = ModelRegistry.resolve_model(horizon, model_type, mode=ForecastMode.RESIDUAL)
+
+    # 1. Feature normalization using training scaler (original, never refitted)
+    scaled_feats = scaler.feature_scaler.transform(prepared_df[scaler.feature_names].values).astype(np.float32)
+    input_tensor = torch.tensor(scaled_feats, dtype=torch.float32).unsqueeze(0)  # [1, 24, 13]
+
+    # 2. Load model
+    model = build_wave_model(
+        model_type=reg_entry.architecture,
+        input_dim=len(DEFAULT_FEATURE_COLS),
+        seq_len=24,
+        output_dim=1,
+    )
+    ckpt_data = torch.load(reg_entry.checkpoint_path, map_location="cpu", weights_only=True)
+    if isinstance(ckpt_data, dict) and "model_state_dict" in ckpt_data:
+        model.load_state_dict(ckpt_data["model_state_dict"])
+    else:
+        model.load_state_dict(ckpt_data)
+    model.eval()
+
+    # 3. Predict scaled delta
+    with torch.no_grad():
+        out_scaled = float(model(input_tensor).cpu().numpy().squeeze())
+
+    # 4. Load horizon-specific residual scaler
+    if reg_entry.residual_scaler_path is None or not reg_entry.residual_scaler_path.is_file():
+        raise FileNotFoundError(f"Residual scaler missing at {reg_entry.residual_scaler_path}")
+    with open(reg_entry.residual_scaler_path, "rb") as f:
+        res_scaler_info = pickle.load(f)
+    rt_mean = float(res_scaler_info["mean"])
+    rt_std = float(res_scaler_info["std"])
+
+    # 5. Inverse-transform residual and reconstruct SWH
+    pred_delta_m = out_scaled * rt_std + rt_mean
+    current_swh = float(prepared_df["swh"].iloc[-1])
+    forecast_swh = current_swh + pred_delta_m
+
+    # Plausibility checks
+    if not np.isfinite(forecast_swh):
+        raise ValueError(f"Model prediction produced non-finite SWH: {forecast_swh}")
+    forecast_swh = max(0.0, forecast_swh)
+    if forecast_swh > 25.0:
+        forecast_swh = 25.0
+
+    target_time = anchor_time + pd.Timedelta(hours=horizon)
+    sea_desc, sea_col = get_sea_state_classification(forecast_swh)
+
+    val_status = validation_status or reg_entry.get_validation_status(location_id)
+
+    return LiveForecastResult(
+        model_name=reg_entry.display_name,
+        horizon_hours=horizon,
+        checkpoint_file=reg_entry.checkpoint_path.name,
+        anchor_time_utc=anchor_time.to_pydatetime(),
+        target_time_utc=target_time.to_pydatetime(),
+        forecast_swh_m=round(forecast_swh, 4),
+        persistence_swh_m=round(current_swh, 4),
+        external_nwp_swh_m=external_nwp_forecast,
+        sea_state_desc=sea_desc,
+        sea_state_color=sea_col,
+        input_window_df=prepared_df,
+        is_demo=is_demo,
+        source_info=source_info or {},
+        location_id=location_id,
+        validation_status=val_status,
+        forecast_mode="residual",
+        predicted_residual_m=round(pred_delta_m, 4),
+    )
 
 
 def get_sea_state_classification(swh_meters: float) -> Tuple[str, str]:

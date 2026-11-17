@@ -9,11 +9,12 @@ from pydantic import BaseModel, Field
 
 class ForecastRequest(BaseModel):
     horizon: int = Field(1, description="Forecast horizon in hours: 1, 6, or 24")
-    model: str = Field("all", description="'ann', 'lstm', 'cnn1d', or 'all'")
+    model: str = Field("all", description="'ann', 'lstm', 'cnn1d', 'candidate', or 'all'")
     source: str = Field("live", description="'live' (Open-Meteo REST) or 'demo' (ERA5 historical window)")
     latitude: Optional[float] = Field(18.50, description="Target offshore latitude in °N")
     longitude: Optional[float] = Field(72.50, description="Target offshore longitude in °E")
     location_id: Optional[str] = Field(None, description="Optional registered coastal node ID (e.g. 'mumbai_offshore', 'goa_mormugao')")
+    forecast_mode: str = Field("residual", description="'residual' (validated ΔSWH forecasters) or 'absolute' (original checkpoints)")
 
 
 class SingleModelForecast(BaseModel):
@@ -25,6 +26,21 @@ class SingleModelForecast(BaseModel):
     delta_vs_nwp_m: Optional[float] = None
     sea_state_desc: str
     sea_state_color: str
+    # Phase 5: Residual learning integration fields
+    current_swh_m: Optional[float] = None
+    predicted_residual_m: Optional[float] = None
+    forecast_mode: str = "residual"
+    model_version: str = "2.0.0-residual"
+    validation_status: str = "reference_validated"
+    rmse_skill_score: Optional[float] = None
+    is_candidate_model: bool = False
+    reconstruction_formula: Optional[str] = None
+    # Explicit schema attributes
+    predicted_swh: Optional[float] = None
+    current_swh: Optional[float] = None
+    predicted_residual: Optional[float] = None
+    selected_model_architecture: Optional[str] = None
+    model_validation_status: Optional[str] = None
 
 
 class ObservationWindowStep(BaseModel):
@@ -72,6 +88,22 @@ class ForecastResponse(BaseModel):
     validation_status: str = "reference_validated"
     data_status: str = "fresh"
     forecast_issue_time_utc: Optional[datetime] = None
+
+    # Phase 5: Enhanced residual reporting attributes
+    forecast_mode: str = "residual"
+    current_swh: Optional[float] = None
+    current_swh_m: Optional[float] = None
+    predicted_swh: Optional[float] = None
+    predicted_residual: Optional[float] = None
+    forecast_horizon: Optional[int] = None
+    selected_model_architecture: Optional[str] = None
+    model_version: Optional[str] = None
+    input_timestamp: Optional[datetime] = None
+    data_source: Optional[str] = None
+    data_freshness: Optional[str] = None
+    data_freshness_minutes: Optional[int] = None
+    forecast_generation_timestamp: Optional[datetime] = None
+    model_validation_status: Optional[str] = None
 
 
 class ForecastStatusResponse(BaseModel):

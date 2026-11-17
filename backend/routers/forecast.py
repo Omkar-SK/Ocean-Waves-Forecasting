@@ -14,6 +14,7 @@ from backend.schemas.forecast import (
 )
 from backend.services.live_service import live_forecast_service
 from src.intelligence.nodes import get_coastal_registry
+from src.models.registry import ModelRegistry, ForecastMode
 
 router = APIRouter(prefix="/api/forecast", tags=["Forecasting"])
 
@@ -22,6 +23,12 @@ router = APIRouter(prefix="/api/forecast", tags=["Forecasting"])
 def list_coastal_locations():
     """List all registered coastal forecasting locations with validation status."""
     return get_coastal_registry().to_dict_list(enabled_only=False)
+
+
+@router.get("/registry")
+def get_model_registry_overview():
+    """Returns catalog of all 18 models (9 residual + 9 absolute) and candidate recommendations."""
+    return ModelRegistry.get_status_overview()
 
 
 @router.get("/status", response_model=ForecastStatusResponse)
@@ -51,18 +58,24 @@ def generate_forecast(req: ForecastRequest):
 @router.get("/live", response_model=ForecastResponse)
 def get_live_forecast_convenience(
     horizon: int = Query(6, description="Lead time: 1, 6, or 24 hours"),
-    model: Optional[str] = Query(None, description="'ann', 'lstm', 'cnn1d', or 'all'"),
+    model: Optional[str] = Query(None, description="'ann', 'lstm', 'cnn1d', 'candidate', or 'all'"),
     model_name: Optional[str] = Query(None, description="Alias for model"),
     source: Optional[str] = Query("live", description="'live' or 'demo'"),
     location_id: Optional[str] = Query(None, description="Registered coastal node ID"),
     use_demo_fallback: Optional[bool] = Query(None, description="Fallback flag"),
+    forecast_mode: Optional[str] = Query("residual", description="'residual' or 'absolute'"),
+    mode: Optional[str] = Query(None, description="Alias for forecast_mode"),
 ):
-    """Convenience GET endpoint for live forecast fetching."""
+    """Convenience GET endpoint for live forecast fetching with residual or absolute models."""
     selected_model = model or model_name or "all"
     # Normalize model string
     selected_model = selected_model.lower().replace("wave", "")
-    if selected_model not in ["ann", "lstm", "cnn1d", "all"]:
+    if selected_model not in ["ann", "lstm", "cnn1d", "all", "candidate", "best"]:
         selected_model = "all"
+
+    selected_mode = mode or forecast_mode or "residual"
+    if selected_mode not in ["residual", "absolute"]:
+        selected_mode = "residual"
 
     selected_source = "demo" if source == "demo" else "live"
     try:
@@ -71,6 +84,7 @@ def get_live_forecast_convenience(
             model=selected_model,
             source=selected_source,
             location_id=location_id,
+            forecast_mode=selected_mode,
         )
         return live_forecast_service.generate_forecast(req)
     except ConnectionError as ce:
@@ -81,6 +95,7 @@ def get_live_forecast_convenience(
                 model=selected_model,
                 source="demo",
                 location_id=location_id,
+                forecast_mode=selected_mode,
             )
             fallback_res = live_forecast_service.generate_forecast(req)
             fallback_res.notes.append(

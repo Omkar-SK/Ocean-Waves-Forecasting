@@ -9,6 +9,7 @@ import { CoastalRiskMapPage } from './pages/CoastalRiskMapPage'
 import { AlertsPage } from './pages/AlertsPage'
 import { CoastalNodesPage } from './pages/CoastalNodesPage'
 import { ForecastAccuracyDriftPage } from './pages/ForecastAccuracyDriftPage'
+import { ForecastVerificationPage } from './pages/ForecastVerificationPage'
 import { HistoricalAnalysisPage } from './pages/HistoricalAnalysisPage'
 import { ModelComparisonPage } from './pages/ModelComparisonPage'
 import { AboutPage } from './pages/AboutPage'
@@ -29,6 +30,7 @@ export default function App() {
               <Route path="map" element={<CoastalRiskMapPage />} />
               <Route path="alerts" element={<AlertsPage />} />
               <Route path="locations" element={<CoastalNodesPage />} />
+              <Route path="verification" element={<ForecastVerificationPage />} />
               <Route path="monitoring" element={<ForecastAccuracyDriftPage />} />
               <Route path="historical" element={<HistoricalAnalysisPage />} />
               <Route path="comparison" element={<ModelComparisonPage />} />

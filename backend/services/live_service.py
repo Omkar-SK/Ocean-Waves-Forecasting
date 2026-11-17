@@ -22,6 +22,7 @@ from src.data.live_service import (
     validate_and_prepare_input_window,
 )
 from src.intelligence.nodes import get_coastal_registry, CoastalNode, ValidationStatus
+from src.models.registry import ForecastMode, ModelRegistry
 
 
 class LiveForecastService:
@@ -112,10 +113,20 @@ class LiveForecastService:
         persistence_swh = float(df_window["swh"].iloc[-1])
         target_time = verified_anchor + pd.Timedelta(hours=req.horizon)
         nwp_val = fetch_res.external_nwp_forecasts.get(req.horizon)
+        forecast_mode_str = getattr(req, "forecast_mode", "residual")
+        f_mode = ForecastMode(forecast_mode_str) if forecast_mode_str in ["residual", "absolute"] else ForecastMode.RESIDUAL
 
         # 3. Model predictions
         predictions: Dict[str, SingleModelForecast] = {}
-        models_to_run = SUPPORTED_MODELS if req.model == "all" else [req.model.lower().replace("wave", "")]
+        clean_model_req = req.model.lower().replace("residual", "").replace("wave", "").strip()
+
+        if clean_model_req in ["all", "*"]:
+            models_to_run = SUPPORTED_MODELS
+        elif clean_model_req in ["candidate", "best", "auto"]:
+            candidate_entry = ModelRegistry.get_candidate(req.horizon, mode=f_mode)
+            models_to_run = [candidate_entry.architecture]
+        else:
+            models_to_run = [clean_model_req if clean_model_req in SUPPORTED_MODELS else "lstm"]
 
         for m in models_to_run:
             pred = model_service.predict_single(
@@ -124,6 +135,8 @@ class LiveForecastService:
                 model_type=m,
                 persistence_swh=persistence_swh,
                 external_nwp=nwp_val,
+                mode=f_mode,
+                location_id=node.location_id,
             )
             predictions[m] = pred
 
@@ -155,10 +168,10 @@ class LiveForecastService:
                     anchor_time_utc=verified_anchor.to_pydatetime(),
                     target_time_utc=target_time.to_pydatetime(),
                     horizon_hours=req.horizon,
-                    predicted_swh_m=pred.predicted_swh,
+                    predicted_swh_m=pred.forecast_swh_m,
                     units="meters",
                     model_name=pred.model_name,
-                    checkpoint_name=pred.checkpoint,
+                    checkpoint_name=pred.checkpoint_file,
                     source_category=src_cat,
                     data_source="OfflineDemoProvider" if fetch_res.is_demo else "OpenMeteoProvider",
                     data_status="offline_demo" if fetch_res.is_demo else "fresh",
@@ -168,6 +181,30 @@ class LiveForecastService:
                     external_nwp_swh_m=nwp_val,
                 )
                 get_monitoring_store().record_forecast(ledger_rec)
+
+                # Phase 1: Continuous Verification Queue Archival
+                from backend.schemas.verification import ForecastArchivalRequest
+                from backend.services.forecast_verification_service import forecast_verification_service
+                freshness_m = max(0, int((datetime.now(timezone.utc) - fetch_res.latest_obs_time_utc).total_seconds() / 60))
+                verif_arch_req = ForecastArchivalRequest(
+                    forecast_id=ledger_rec.forecast_id,
+                    location_id=node.location_id,
+                    forecast_origin_time=datetime.now(timezone.utc),
+                    target_timestamp=target_time.to_pydatetime(),
+                    forecast_horizon=req.horizon,
+                    current_swh=persistence_swh,
+                    predicted_swh=pred.forecast_swh_m,
+                    predicted_residual=pred.predicted_residual_m,
+                    model_architecture=pred.model_name,
+                    model_version=pred.model_version,
+                    input_data_timestamp=verified_anchor.to_pydatetime(),
+                    data_source="OfflineDemoProvider" if fetch_res.is_demo else "OpenMeteoProvider",
+                    data_freshness_minutes=freshness_m,
+                    forecast_validation_status=node.validation_status.value,
+                    is_reference=node.is_reference,
+                    external_nwp_swh=nwp_val,
+                )
+                forecast_verification_service.archive_forecast(verif_arch_req)
             except Exception:
                 pass
 
@@ -188,6 +225,14 @@ class LiveForecastService:
         data_status_str = getattr(fetch_res, "data_status", "fresh" if not fetch_res.is_demo else "offline_demo")
         issue_time = getattr(fetch_res, "forecast_issue_time_utc", None)
 
+        # Primary prediction resolution (candidate model preferred)
+        cand_entry = ModelRegistry.get_candidate(req.horizon, mode=f_mode)
+        primary_pred = predictions.get(cand_entry.architecture) or next(iter(predictions.values()))
+
+        # Compute data freshness minutes
+        now_utc = datetime.now(timezone.utc)
+        freshness_mins = max(0, int((now_utc - fetch_res.latest_obs_time_utc).total_seconds() / 60))
+
         return ForecastResponse(
             anchor_time_utc=verified_anchor.to_pydatetime(),
             target_time_utc=target_time.to_pydatetime(),
@@ -200,13 +245,28 @@ class LiveForecastService:
             attribution=fetch_res.attribution,
             is_demo=fetch_res.is_demo,
             notes=fetch_res.notes,
-            generated_at_utc=datetime.now(timezone.utc),
+            generated_at_utc=now_utc,
             location_id=node.location_id,
             location_name=node.name,
             is_reference=node.is_reference,
             validation_status=node.validation_status.value,
             data_status=data_status_str,
             forecast_issue_time_utc=issue_time,
+            # Phase 5: Enhanced residual reporting attributes
+            forecast_mode=f_mode.value,
+            current_swh=round(persistence_swh, 4),
+            current_swh_m=round(persistence_swh, 4),
+            predicted_swh=primary_pred.forecast_swh_m,
+            predicted_residual=primary_pred.predicted_residual_m,
+            forecast_horizon=req.horizon,
+            selected_model_architecture=primary_pred.model_name,
+            model_version=primary_pred.model_version,
+            input_timestamp=verified_anchor.to_pydatetime(),
+            data_source=fetch_res.source_name,
+            data_freshness=f"{freshness_mins} minutes ago",
+            data_freshness_minutes=freshness_mins,
+            forecast_generation_timestamp=now_utc,
+            model_validation_status=node.validation_status.value,
         )
 
     def check_status(self) -> ForecastStatusResponse:
